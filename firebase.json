@@ -15,15 +15,6 @@
                         "value": "max-age=0, no-cache, no-store, must-revalidate"
                     }
                 ]
-            },
-            {
-                "source": "/downloads/**",
-                "headers": [
-                    {
-                        "key": "Content-Disposition",
-                        "value": "attachment"
-                    }
-                ]
             }
         ],
         "rewrites": [

@@ -30,7 +30,9 @@ Set-Location $root
 # 4. 公開ディレクトリの準備とハッシュ付与 (Cache Busting)
 Write-Host "--- Preparing public files & views with Cache Busting ---"
 New-Item -ItemType Directory -Force $publicDistDir | Out-Null
-Copy-Item -Path "$sourcePublicDir\*" -Destination $publicDistDir -Recurse -Force
+Get-ChildItem -Path $sourcePublicDir | Where-Object { $_.Name -ne "downloads" } | ForEach-Object {
+    Copy-Item -Path $_.FullName -Destination $publicDistDir -Recurse -Force
+}
 
 # Viewsディレクトリのコピー（Functions配備用）
 New-Item -ItemType Directory -Force $distViewsDir | Out-Null
