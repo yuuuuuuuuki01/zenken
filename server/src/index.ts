@@ -632,7 +632,7 @@ app.get('/downloads/:filename', async (req, res) => {
 
     // 2. Fallback to Firebase Storage (Persistent source of truth)
     try {
-        const bucketName = 'gigacompute-fleet.firebasestorage.app'; // Correct default for Firebase Projects
+        const bucketName = process.env.FIREBASE_STORAGE_BUCKET || 'gigacompute-fleet.firebasestorage.app';
         console.log(`[Download] Falling back to Storage Bucket: ${bucketName} for ${filename}`);
 
         const bucket = getStorage().bucket(bucketName);
@@ -650,7 +650,7 @@ app.get('/downloads/:filename', async (req, res) => {
             });
             readStream.pipe(res);
         } else {
-            console.warn(`[Download] Not found in Local or Storage: ${filename}`);
+            console.warn(`[Download] Not found in Local or Storage: ${filename}. Searched downloads/${filename} in ${bucketName}`);
             res.status(404).send('File not found');
         }
     } catch (e: any) {
@@ -1089,17 +1089,13 @@ clientRouter.get('/dashboard', async (req: any, res, next) => {
         const user = await db.user.findUnique({ where: { id: req.userId } });
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        // 1. Fetch all jobs for this user to calculate and sort in memory
-        // This avoids Firestore composite index requirements for where + orderBy
+        // 1. Fetch statistics and jobs in memory
         const allJobs = await db.clientJob.findMany({
             where: { userId: req.userId }
         });
 
-        // 2. Sort in memory (Server-side)
         allJobs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        // 3. Calculate statistics in memory (Server-side)
-        // Replacing db.clientJob.aggregate which is not supported/failing in Firestore adapter
         const stats = allJobs.reduce((acc, job: any) => {
             acc.totalJobs++;
             if (job.status === 'pending' || job.status === 'processing') {
@@ -1109,27 +1105,31 @@ clientRouter.get('/dashboard', async (req: any, res, next) => {
             return acc;
         }, { totalJobs: 0, activeJobs: 0, totalSpent: 0 });
 
-        // 4. Fetch the most recent active API key
         const latestKey = await db.clientApiKey.findFirst({
             where: { userId: req.userId, isActive: true }
-            // No orderBy here to avoid index requirements
         });
 
-        res.json({
-            points: user.points,
-            language: user.language || 'ja',
-            name: user.name,
-            accessKey: latestKey ? latestKey.key : null,
+        // 2. Fetch latest version info from Firestore to enable download links
+        const versionInfo = await firestoreService.getVersion().catch(() => null) || currentApprovedVersion;
+
+        res.render('dashboard', {
+            user: {
+                ...user,
+                points: user.points.toFixed(2),
+                hash: req.params.hash || ''
+            },
+            jobs: allJobs.slice(0, 50),
             stats: {
                 totalJobs: stats.totalJobs,
                 activeJobs: stats.activeJobs,
-                totalSpent: stats.totalSpent
+                totalSpent: stats.totalSpent.toFixed(2)
             },
-            recentJobs: allJobs.slice(0, 50) // Take top 50 in memory
+            accessKey: latestKey ? latestKey.key : null,
+            versionInfo: versionInfo // Provide this to dashboard.ejs for "Tools & Downloads"
         });
     } catch (e: any) {
         console.error('[Dashboard Error]', e?.stack || e);
-        next(e);
+        res.status(500).send('Internal Server Error');
     }
 });
 
