@@ -1,0 +1,11 @@
+# Firebase ignore file for the functions source directory
+node_modules
+.git
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*.pyc
+
+# Ensure dist is NOT ignored, even if it is in root .gitignore
+!dist/
+!dist/**

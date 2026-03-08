@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  name             String?
+  stripeCustomerId String?  @unique
+  points           Float    @default(0) // プラットフォーム内ポイント残高
+  earningsYen      Float    @default(0) // 出金可能な実金円（円換算）
+  passwordHash     String   // ハッシュ化されたパスワード
+  openAiKey        String?  // ユーザー固有のAI APIキー (OpenAI)
+  geminiKey        String?  // ユーザー固有のAI APIキー (Google Gemini)
+  securePortalHash String?  @unique // [ステートレス専用] 個別ポータルURL生成用の推測不可能なハッシュ
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  nodes            Node[]   // 所有するノード
+  transactions     PointTransaction[]
+  clientApiKeys    ClientApiKey[]
+  clientJobs       ClientJob[]
+}
+
+model Node {
+  id               String   @id // ノードID (agent-xxx)
+  type             String   // agent | dashboard
+  publicKey        String?  // なりすまし防止用公開鍵
+  otc              String?  // デバイス連携用ワンタイムコード
+  otcExpiresAt     DateTime? 
+  trustScore       Float    @default(50)
+  performanceScore Float    @default(50)
+  rewardPoints     Float    @default(0) // 個別ノードの収益記録
+  ownerId          String
+  owner            User     @relation(fields: [ownerId], references: [id])
+  createdAt        DateTime @default(now())
+  lastSeenAt       DateTime? @default(now())
+  status           String   @default("idle")
+}
+
+model PointTransaction {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  type           String   // PURCHASE | WITHDRAW | DISTRIBUTE(Promotion) | REWARD
+  amount         Float
+  stripeSessionId String?  // 決済時のセッションID
+  description    String?
+  createdAt      DateTime @default(now())
+}
+
+model ClientApiKey {
+  id        String   @id @default(uuid())
+  key       String   @unique // GigaCompute クライアント利用APIキー e.g. giga_...
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  lastUsedAt DateTime?
+  isActive  Boolean  @default(true)
+}
+
+model ClientJob {
+  id        String   @id @default(uuid())
+  type      String   // llm_inference | script_exec 等
+  payload   String   // タスクの入力データ（JSONやプロンプト）
+  status    String   @default("pending") // pending | processing | completed | failed
+  cost      Float    @default(0) // 消費したPTS
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  result    String?  // タスクの実行結果
+}

@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check-compat.js"></script>
+</head>
+
+<body>
+    <!-- Auth Overlay -->
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <div class="auth-logo">⬡ GIGACOMPUTE</div>
+            <div class="auth-subtitle">ADMIN CONTROL CENTER</div>
+            <div class="auth-form">
+                <button id="auth-btn" class="btn-primary"
+                    style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/p06b/google.svg" width="18"
+                        height="18">
+                    GOOGLE LOGIN
+                </button>
+                <p id="auth-error" class="auth-error"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="main-layout" style="display:none">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <span class="logo-hex">⬡</span>
+                    <div>
+                        <div class="logo-title">ZEN KEN</div>
+                        <div class="logo-sub">Admin Panel</div>
+                    </div>
+                </a>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-view="overview">
+                    <span class="nav-icon">◈</span> Overview
+                </a>
+                <a href="#" class="nav-item" data-view="nodes">
+                    <span class="nav-icon">◉</span> ノード管理
+                </a>
+                <a href="#" class="nav-item" data-view="tasks">
+                    <span class="nav-icon">◎</span> タスクキュー
+                </a>
+                <a href="#" class="nav-item" data-view="dispatch">
+                    <span class="nav-icon">🚀</span> アルゴリズム実行
+                </a>
+                <a href="#" class="nav-item" data-view="users">
+                    <span class="nav-icon">◇</span> ユーザー管理
+                </a>
+                <a href="#" class="nav-item" data-view="transactions">
+                    <span class="nav-icon">◆</span> 取引履歴
+                </a>
+                <a href="#" class="nav-item" data-view="settings">
+                    <span class="nav-icon">⚙</span> システム設定
+                </a>
+                <a href="#" class="nav-item" data-view="maintenance">
+                    <span class="nav-icon">🛡</span> 維持管理
+                </a>
+                <a href="#" class="nav-item" data-view="versioning">
+                    <span class="nav-icon">🚀</span> バージョン管理
+                </a>
+                <a href="#" class="nav-item" data-view="withdrawals">
+                    <span class="nav-icon">💰</span> 出金管理
+                </a>
+                <a href="#" class="nav-item" data-view="support">
+                    <span class="nav-icon">🛟</span> サポート管理
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="server-status">
+                    <div class="status-dot" id="server-dot"></div>
+                    <span id="server-status-text">接続中...</span>
+                </div>
+                <div class="uptime-label" id="uptime-label">Uptime: --</div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <h1 id="page-title">Overview</h1>
+                <div class="header-right">
+                    <div class="live-indicator"><span class="pulse-dot"></span>LIVE</div>
+                    <button id="refresh-btn" class="btn-icon" title="手動更新">↻</button>
+                    <button id="logout-btn" class="btn-outline-sm">ログアウト</button>
+                </div>
+            </header>
+
+            <!-- Overview View -->
+            <section id="view-overview" class="view-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">◉</div>
+                        <div class="stat-value" id="stat-nodes">--</div>
+                        <div class="stat-label">接続ノード</div>
+                    </div>
+                    <div class="stat-card highlight-card">
+                        <div class="stat-icon">🏎</div>
+                        <div class="stat-value" id="stat-tflops">0.00</div>
+                        <div class="stat-label">総計算力 (TFLOPS)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-value" id="stat-queue-pending">--</div>
+                        <div class="stat-label">キュー待機</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚡</div>
+                        <div class="stat-value" id="stat-queue-processing">--</div>
+                        <div class="stat-label">処理中チャンク</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">◇</div>
+                        <div class="stat-value" id="stat-users">--</div>
+                        <div class="stat-label">登録ユーザー</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">◎</div>
+                        <div class="stat-value" id="stat-active-tasks">--</div>
+                        <div class="stat-label">アクティブタスク</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">◆</div>
+                        <div class="stat-value" id="stat-active-jobs">--</div>
+                        <div class="stat-label">進行中ジョブ</div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>ネットワーク・スループット</h2>
+                        <span class="live-label">REAL-TIME</span>
+                    </div>
+                    <div class="chart-container"
+                        style="height: 200px; display: flex; align-items: flex-end; gap: 4px; padding: 20px 0;">
+                        <!-- Simple CSS/JS Bar Chart Placeholder -->
+                        <div id="throughput-chart"
+                            style="display: flex; align-items: flex-end; gap: 2px; width: 100%; height: 100%; overflow: hidden;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Tasks Timeline -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>アクティブタスク タイムライン</h2>
+                        <span class="badge" id="active-tasks-count">0</span>
+                    </div>
+                    <div id="active-tasks-list" class="task-timeline">
+                        <p class="empty-msg">アクティブなタスクはありません</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Nodes View -->
+            <section id="view-nodes" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>接続ノード一覧</h2>
+                        <span class="badge" id="nodes-count">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table" id="nodes-table">
+                            <thead>
+                                <tr>
+                                    <th>Node ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>TrustScore</th>
+                                    <th>PerfScore</th>
+                                    <th>RewardPTS</th>
+                                    <th>WS State</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nodes-tbody">
+                                <tr>
+                                    <td colspan="8" class="empty-msg">ノードなし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tasks View -->
+            <section id="view-tasks" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>タスクキュー状態 (In-Memory)</h2>
+                        <button id="dispatch-test-task-btn" class="btn-primary-sm">🚀 テストタスクを一括投入</button>
+                    </div>
+                    <div id="queue-stats" class="queue-stats-row"></div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Task ID</th>
+                                    <th>Job ID</th>
+                                    <th>Step</th>
+                                    <th>Requester</th>
+                                    <th>Details</th>
+                                    <th>最終更新</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-msg">タスクなし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 25px;">
+                    <div class="panel-header">
+                        <h2>ジョブ履歴（全件・Firestore）</h2>
+                        <span class="badge" id="jobs-count">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Cost (PTS)</th>
+                                    <th>User ID</th>
+                                    <th>日時</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-msg">ジョブ履歴なし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users View -->
+            <section id="view-users" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>ユーザー管理</h2>
+                        <span class="badge" id="users-count">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Email</th>
+                                    <th>Name</th>
+                                    <th>PTS残高</th>
+                                    <th>登録日</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody">
+                                <tr>
+                                    <td colspan="5" class="empty-msg">ユーザーなし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions View -->
+            <section id="view-transactions" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>PTS取引履歴（最新100件）</h2>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>User ID</th>
+                                    <th>Source</th>
+                                    <th>説明</th>
+                                    <th>日時</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-msg">取引なし</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dispatch View -->
+            <section id="view-dispatch" class="view-section" style="display:none">
+                <!-- Algorithm Manifest Panel -->
+                <div class="panel" style="margin-bottom: 25px;">
+                    <div class="panel-header">
+                        <h2>司令塔アルゴリズム (ZEN KEN Orchestrator)</h2>
+                        <span class="live-label">ACTIVE STRATEGY</span>
+                    </div>
+                    <div id="algo-manifest-container" class="algo-manifest-card">
+                        <div class="empty-msg">読み込み中...</div>
+                    </div>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>アルゴリズム実行 (Manual Dispatch)</h2>
+                        </div>
+                        <div class="form-group">
+                            <label>タスク種別 (Task Type)</label>
+                            <select id="dispatch-type" class="input-full">
+                                <option value="llm_inference">LLM 推論 (Admin Eval)</option>
+                                <option value="script_exec">Node.js スクリプト実行</option>
+                                <option value="simulation">物理シミュレーション</option>
+                                <option value="custom">カスタムタスク</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label>ペイロード (Input / Instruction)</label>
+                            <textarea id="dispatch-payload" class="input-full" rows="10"
+                                placeholder="指示やコードをここに入力..."></textarea>
+                        </div>
+                        <button id="dispatch-submit-btn" class="btn-primary" style="margin-top: 20px; width: 100%;">
+                            ネットワークへ一斉投入
+                        </button>
+                        <p id="dispatch-status" style="margin-top: 15px; font-size: 0.9rem; text-align: center;"></p>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>管理者用 API 連携情報</h2>
+                        </div>
+                        <div class="api-info-box">
+                            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">
+                                外部システムから本ネットワークへ直接タスクを投入する場合、以下のエンドポイントを使用してください。
+                            </p>
+                            <div class="code-snippet">
+                                <span class="method">POST</span> /admin/api/tasks/submit
+                            </div>
+                            <h4 style="margin: 15px 0 10px;">Authentication</h4>
+                            <p
+                                style="font-size: 0.85rem; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+                                Authorization: Bearer &lt;FirebaseToken&gt;<br>
+                                x-firebase-appcheck: &lt;AppCheckToken&gt;
+                            </p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn-outline-sm" id="copy-token-btn">現在のトークンをコピー</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section id="view-settings" class="view-section" style="display:none">
+                <div class="grid-2col">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>GCP / BigQuery 連携設定</h2>
+                        </div>
+                        <div class="settings-group">
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-title">BigQuery Streaming</div>
+                                    <div class="setting-desc">完了したタスクの計算ログをリアルタイムで送信</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="setting-bq-enabled">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div>
+                                    <div class="setting-title">Dataset ID</div>
+                                    <input type="text" id="setting-bq-dataset" value="gigacompute_analytics"
+                                        class="input-sm">
+                                </div>
+                            </div>
+                            <button class="btn-primary-sm" id="save-bq-btn">保存してテスト接続</button>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>外部サービス接続状態</h2>
+                        </div>
+                        <div class="status-list">
+                            <div class="status-item">
+                                <span>Stripe API</span>
+                                <span class="badge badge-success" id="status-stripe">Connected (Test Mode)</span>
+                            </div>
+                            <div class="status-item">
+                                <span>Google Cloud Logging</span>
+                                <span class="badge badge-warning" id="status-logging">Disconneted</span>
+                            </div>
+                            <div class="status-item">
+                                <span>OpenAI API (LLM Client)</span>
+                                <span class="badge badge-success" id="status-openai">Connected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <div class="panel-header">
+                        <h2>アルゴリズム・マッチング設定</h2>
+                        <span class="live-label">HOT-RELOAD</span>
+                    </div>
+                    <div class="grid-3col"
+                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px;">
+                        <div class="settings-group">
+                            <h4 style="margin-bottom: 10px;">報酬倍率 (Multipliers)</h4>
+                            <div class="form-group-sm">
+                                <label>地産地消 (Geo)</label>
+                                <input type="number" id="algo-geo-premium" step="0.1" class="input-full">
+                            </div>
+                            <div class="form-group-sm" style="margin-top: 10px;">
+                                <label>機密計算 (Sensitive)</label>
+                                <input type="number" id="algo-sensitive-premium" step="0.1" class="input-full">
+                            </div>
+                            <div class="form-group-sm" style="margin-top: 10px;">
+                                <label>LLMインフレ (Fine-tune)</label>
+                                <input type="number" id="algo-finetune-premium" step="0.1" class="input-full">
+                            </div>
+                        </div>
+                        <div class="settings-group">
+                            <h4 style="margin-bottom: 10px;">信頼スコア閾値 (Trust)</h4>
+                            <div class="form-group-sm">
+                                <label>標準タスク</label>
+                                <input type="number" id="algo-default-trust" step="0.05" min="0" max="1.0"
+                                    class="input-full">
+                            </div>
+                            <div class="form-group-sm" style="margin-top: 10px;">
+                                <label>機密タスク</label>
+                                <input type="number" id="algo-sensitive-trust" step="0.05" min="0" max="1.0"
+                                    class="input-full">
+                            </div>
+                        </div>
+                        <div class="settings-group">
+                            <h4 style="margin-bottom: 10px;">キュー制御 (Queue)</h4>
+                            <div class="form-group-sm">
+                                <label>タイムアウト (秒)</label>
+                                <input type="number" id="algo-timeout" step="1" min="5" class="input-full">
+                            </div>
+                            <div class="form-group-sm" style="margin-top: 10px;">
+                                <label>需要連動感度 (Sensitivity)</label>
+                                <input type="number" id="algo-demand-sensitivity" step="0.1" min="0" class="input-full">
+                            </div>
+                            <div style="margin-top: 25px;">
+                                <button class="btn-primary" id="save-algo-btn" style="width: 100%;">アルゴリズムを更新</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>システム環境変数 (Read Only)</h2>
+                    </div>
+                    <div class="env-viewer" id="env-list">
+                        <p class="empty-msg">読み込み中...</p>
+                    </div>
+                </div>
+            </section>
+            <!-- Maintenance View -->
+            <section id="view-maintenance" class="view-section" style="display:none">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🛡</div>
+                        <div class="stat-value" id="stat-certs-ok">--</div>
+                        <div class="stat-label">証明書ステータス</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value" id="stat-assets-count">--</div>
+                        <div class="stat-label">公開配布物</div>
+                    </div>
+                </div>
+
+                <div class="admin-grid">
+                    <!-- Certificate Management -->
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3>mTLS 証明書管理</h3>
+                            <button id="renew-certs-btn" class="btn-outline-sm">証明書を更新</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ファイル名</th>
+                                        <th>CN</th>
+                                        <th>有効期限</th>
+                                        <th>残り日数</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="certs-table-body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Distribution Assets -->
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h3>配布物ステータス</h3>
+                            <button id="refresh-assets-btn" class="btn-icon">↻</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ツール名</th>
+                                        <th>バージョン</th>
+                                        <th>サイズ</th>
+                                        <th>最終更新</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="assets-table-body">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="margin-top: 30px;">
+                    <div class="card-header">
+                        <h3>システムメンテナンス</h3>
+                    </div>
+                    <div style="display: flex; gap: 15px; padding: 20px;">
+                        <button id="db-backup-btn" class="btn-primary">
+                            <span style="margin-right:8px;">💾</span> データベースをバックアップ (JSON)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Versioning View -->
+            <section id="view-versioning" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>エージェント・バージョン管理</h2>
+                        <span class="live-label">LIVE UPDATE CONTROL</span>
+                    </div>
+                    <div class="grid-2col" style="margin-top: 20px;">
+                        <div class="panel">
+                            <h3>現在の公開バージョン</h3>
+                            <div id="current-version-info" class="algo-manifest-card" style="margin-top: 15px;">
+                                <div class="empty-msg">読み込み中...</div>
+                            </div>
+                        </div>
+                        <div class="panel">
+                            <h3>新バージョンの登録・承認</h3>
+                            <div class="form-group" style="margin-top: 15px;">
+                                <label>バージョン番号 (e.g. v1.2.1)</label>
+                                <input type="text" id="ver-input-version" class="input-full" placeholder="例: v1.3.2"
+                                    value="v1.3.2">
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label>Windows ダウンロード URL</label>
+                                <input type="text" id="ver-input-url" class="input-full"
+                                    placeholder="https://example.com/zenken-agent-win.zip">
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label>macOS ダウンロード URL</label>
+                                <input type="text" id="ver-input-mac-url" class="input-full"
+                                    placeholder="https://example.com/zenken-agent-mac.zip">
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label>リリースノート (エージェント側に表示されます)</label>
+                                <textarea id="ver-input-notes" class="input-full" rows="3"
+                                    placeholder="バグ修正とパフォーマンスの向上..."></textarea>
+                            </div>
+                            <!-- New File Upload Inputs -->
+                            <div class="form-group"
+                                style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                                <label>Windows エージェントZIP アップロード (optional)</label>
+                                <input type="file" id="ver-file-win" class="input-full" accept=".zip">
+                            </div>
+                            <div class="form-group" style="margin-top: 10px;">
+                                <label>macOS エージェントZIP アップロード (optional)</label>
+                                <input type="file" id="ver-file-mac" class="input-full" accept=".zip">
+                            </div>
+                            <div class="setting-item" style="margin-top: 15px;">
+                                <div>
+                                    <div class="setting-title">即時公開</div>
+                                    <div class="setting-desc">保存と同時に全エージェントに通知します</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="ver-input-public" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <button id="btn-save-version" class="btn-primary" style="margin-top: 20px; width: 100%;">
+                                バージョンを更新して配布開始
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Withdrawals View -->
+            <section id="view-withdrawals" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>出金申請一覧（保留中）</h2>
+                        <span class="badge" id="withdrawals-count">0</span>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>ユーザーID</th>
+                                    <th>金額 (JPY)</th>
+                                    <th>申請日時</th>
+                                    <th>詳細 / 振込先</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawals-tbody">
+                                <tr>
+                                    <td colspan="6" class="empty-msg">保留中の申請はありません</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Support Tickets View -->
+            <section id="view-support" class="view-section" style="display:none">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>サポートチケット一覧</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <select id="ticket-filter" class="input-sm" style="min-width: 120px;">
+                                <option value="all">全て</option>
+                                <option value="open">受付中</option>
+                                <option value="replied">回答済</option>
+                                <option value="closed">クローズ</option>
+                            </select>
+                            <span class="badge" id="tickets-count">0</span>
+                        </div>
+                    </div>
+                    <div id="admin-tickets-container" style="padding: 15px;">
+                        <p class="empty-msg">チケットなし</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="pts-modal" class="modal-overlay" style="display:none">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>PTS付与</h3>
+                <button id="close-pts-modal" class="btn-icon">×</button>
+            </div>
+            <div class="modal-body">
+                <p id="pts-modal-user" style="font-size:0.9rem; color:var(--text-muted); margin-bottom:20px;"></p>
+                <div class="form-group">
+                    <label>付与量 (PTS)</label>
+                    <input type="number" id="pts-amount-input" class="input-full" placeholder="100.0" step="0.1">
+                </div>
+                <div class="form-group" style="margin-top:20px;">
+                    <label>説明 (履歴に表示されます)</label>
+                    <input type="text" id="pts-desc-input" class="input-full" placeholder="Admin manual grant">
+                </div>
+                <button id="confirm-pts-btn" class="btn-primary" style="margin-top:30px; width:100%;">付与を実行</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

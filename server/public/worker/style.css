@@ -1,0 +1,313 @@
+:root {
+    --bg-dark: hsl(230, 20%, 5%);
+    --bg-deep: hsl(230, 25%, 3%);
+    --card-bg: hsla(230, 20%, 8%, 0.8);
+    --accent-primary: hsl(185, 100%, 50%);
+    --accent-secondary: hsl(265, 100%, 65%);
+    --accent-success: hsl(155, 100%, 50%);
+    --text-main: hsl(0, 0%, 95%);
+    --text-muted: hsl(230, 10%, 60%);
+    --glass-border: hsla(0, 0%, 100%, 0.08);
+    --accent-eco: hsl(145, 80%, 45%);
+    --accent-turbo: hsl(15, 100%, 60%);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    background: radial-gradient(circle at 0% 0%, hsla(265, 100%, 10%, 0.15) 0%, transparent 50%), var(--bg-deep);
+}
+
+.glow-bg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.03), transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2.5rem;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo-section h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+.logo-section .accent {
+    color: var(--accent-primary);
+}
+
+.safety-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    color: var(--accent-primary);
+    margin-left: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.ticker-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 3rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    backdrop-filter: blur(20px);
+}
+
+.ticker-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 5rem;
+    font-weight: 700;
+}
+
+.performance-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.glass {
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2.5rem;
+}
+
+/* Console & Monitor Styles */
+.console-box {
+    background: #05070a;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    height: 150px;
+    overflow-y: auto;
+    padding: 1rem;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.7rem;
+    line-height: 1.6;
+}
+
+.log-line {
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+    margin-bottom: 4px;
+}
+
+.log-line.info {
+    border-color: var(--accent-primary);
+    color: var(--text-main);
+}
+
+.log-line.success {
+    border-color: var(--accent-success);
+    color: var(--accent-success);
+}
+
+.log-line.warn {
+    border-color: var(--accent-turbo);
+    color: var(--accent-turbo);
+}
+
+/* Tab Styles */
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 10px 15px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: var(--accent-primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-primary);
+}
+
+/* New UI Components */
+.segmented-control {
+    display: flex;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+}
+
+.segmented-control button {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.65rem;
+    cursor: pointer;
+}
+
+.segmented-control button.active {
+    background: var(--accent-primary);
+    color: #000;
+    font-weight: 800;
+}
+
+.segmented-control button#mode-eco.active {
+    background: var(--accent-eco);
+}
+
+.segmented-control button#mode-turbo.active {
+    background: var(--accent-turbo);
+}
+
+.trust-progress-container {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+    margin-top: 10px;
+    overflow: hidden;
+}
+
+.trust-progress-fill {
+    height: 100%;
+    background: var(--accent-success);
+    transition: width 0.8s ease;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(15px);
+}
+
+.modal-content {
+    background: #0d1117;
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    width: 450px;
+    margin: 5vh auto;
+    padding: 3rem;
+}
+
+.btn-confirm {
+    background: var(--accent-primary);
+    color: #000;
+    border: none;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 4px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.pulse-node {
+    width: 12px;
+    height: 12px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    margin: 10px auto;
+    position: relative;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 229, 255, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);
+    }
+}
+
+@keyframes rewardGlow {
+    0% {
+        box-shadow: none;
+    }
+
+    50% {
+        box-shadow: 0 0 30px var(--accent-success);
+    }
+
+    100% {
+        box-shadow: none;
+    }
+}
+
+.reward-pulse {
+    animation: rewardGlow 0.8s ease-out;
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--glass-border);
+    width: 100%;
+    padding: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+}

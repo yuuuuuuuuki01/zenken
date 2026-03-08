@@ -1,0 +1,168 @@
+name: Release - Multi Platform Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v0.2.0)'
+        required: true
+        default: 'v0.1.0'
+
+jobs:
+  build-backend:
+    name: Build Backend Sidecar (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary_ext: .exe
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            binary_ext: ''
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            binary_ext: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: provider/backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: provider/backend
+        run: npm install
+
+      - name: Install pkg globally
+        run: npm install -g pkg
+
+      - name: Build backend TypeScript
+        working-directory: provider/backend
+        run: npm run build
+
+      - name: Package backend binary (macOS Intel)
+        if: matrix.target == 'x86_64-apple-darwin'
+        working-directory: provider/backend
+        run: pkg . --target node18-macos-x64 --output gigacompute-backend-x86_64-apple-darwin
+
+      - name: Package backend binary (macOS ARM)
+        if: matrix.target == 'aarch64-apple-darwin'
+        working-directory: provider/backend
+        run: pkg . --target node18-macos-arm64 --output gigacompute-backend-aarch64-apple-darwin
+
+      - name: Package backend binary (Windows)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        working-directory: provider/backend
+        shell: powershell
+        run: pkg . --target node18-win-x64 --output gigacompute-backend-x86_64-pc-windows-msvc.exe
+
+      - name: Upload backend binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-${{ matrix.target }}
+          path: provider/backend/gigacompute-backend-${{ matrix.target }}${{ matrix.binary_ext }}
+          retention-days: 1
+
+  build-tauri:
+    name: Build Tauri App (${{ matrix.platform }})
+    needs: build-backend
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            backend_target: x86_64-pc-windows-msvc
+            binary_ext: .exe
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+            backend_target: x86_64-apple-darwin
+            binary_ext: ''
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+            backend_target: aarch64-apple-darwin
+            binary_ext: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './provider/src-tauri -> target'
+
+      - name: Install frontend dependencies
+        working-directory: provider
+        run: npm install
+
+      # Sidecar バイナリを所定の位置に配置
+      - name: Download backend binary
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-${{ matrix.backend_target }}
+          path: provider/src-tauri/binaries/
+
+      - name: Rename sidecar binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mv provider/src-tauri/binaries/gigacompute-backend-${{ matrix.target }} \
+             provider/src-tauri/binaries/gigacompute-backend-${{ matrix.target }}
+          chmod +x provider/src-tauri/binaries/gigacompute-backend-${{ matrix.target }}
+
+      - name: Rename sidecar binary (Windows)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Copy-Item "provider\src-tauri\binaries\gigacompute-backend-${{ matrix.target }}.exe" `
+                    "provider\src-tauri\binaries\gigacompute-backend-${{ matrix.target }}.exe" -Force
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        with:
+          projectPath: provider
+          tagName: ${{ github.ref_name }}
+          releaseName: 'ZEN KEN Agent ${{ github.ref_name }}'
+          releaseBody: |
+            ## ZEN KEN Agent Release
+
+            ### ダウンロード方法
+            - **Windows**: `gigacompute-agent_*_x64-setup.exe` または `.msi`
+            - **macOS (Intel)**: `gigacompute-agent_*_x64.dmg`
+            - **macOS (Apple Silicon / M1)**: `gigacompute-agent_*_aarch64.dmg`
+
+            ### インストール手順
+            ダウンロードしたファイルを実行し、画面の指示に従ってください。
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }}

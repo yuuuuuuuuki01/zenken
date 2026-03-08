@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Agents - ZEN KEN | 計算力を提供して報酬を得る</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/branding/logo-transparent.png">
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">ZEN KEN</div>
+            <nav>
+                <a href="/">HOME</a>
+                <a href="/agent.html" class="active">FOR AGENTS</a>
+                <a href="/client.html">FOR CLIENTS</a>
+                <a href="/client-portal" class="nav-highlight">Client Login</a>
+                <a href="/worker-portal" class="nav-highlight">Worker Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="sub-hero">
+        <div class="container text-center">
+            <h1>眠っているPCが、<br><span class="highlight">「資産」に変わる。</span></h1>
+            <p>ZEN KEN Agent をインストールするだけで、あなたのPCが日本の重要インフラの一部となり、<br>稼働に応じた正当な報酬を 24時間 獲得し続けます。</p>
+        </div>
+    </section>
+
+    <section id="simulator" class="simulator-section">
+        <div class="container">
+            <h2 class="text-center">Earnings <span class="highlight">Simulator</span></h2>
+            <p class="text-center subtitle">あなたのデバイスが稼ぎ出す「貢献報酬」を今すぐ計算</p>
+
+            <div class="simulator-card glass">
+                <div class="simulator-grid">
+                    <div class="inputs">
+                        <div class="input-group">
+                            <label>デバイスのスペックを選択</label>
+                            <select id="spec-select">
+                                <option value="rtx4090" data-power="350" data-income="500">NVIDIA RTX 4090 (最強)</option>
+                                <option value="rtx4070" data-power="200" data-income="280">NVIDIA RTX 4070/80 (上級)
+                                </option>
+                                <option value="rtx3060" data-power="170" data-income="180">NVIDIA RTX 30系列 (標準)</option>
+                                <option value="mac-m3" data-power="40" data-income="150">Apple M2/M3/M4 (Mac)</option>
+                                <option value="cpu-only" data-power="65" data-income="40">CPUのみ (Core i7 / Ryzen 7)
+                                </option>
+                                <option value="api-only" data-power="0" data-income="120">AI API 連結 (電気代ゼロ)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>1日の稼働時間: <span id="hours-val">12</span>時間</label>
+                            <input type="range" id="hours-range" min="1" max="24" value="12">
+                        </div>
+
+                        <div class="input-group">
+                            <label>電気代単価: <span id="elec-val">31</span>円/kWh</label>
+                            <input type="range" id="elec-range" min="20" max="50" value="31">
+                        </div>
+
+                        <div class="input-group">
+                            <label>デバイス台数 (Scaling): <span id="node-val">1</span>台</label>
+                            <input type="range" id="node-range" min="1" max="20" value="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label>役務の種類 (Service Type)</label>
+                            <select id="service-select">
+                                <option value="general" data-mult="1.0">一般演算 (LLM 推論 / 解析)</option>
+                                <option value="edge" data-mult="1.5">超ローカルエッジ (低遅延 / 地産地消)</option>
+                                <option value="confidential" data-mult="2.2">機密計算 (高セキュリティ / 国産主権)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group market-adjuster">
+                            <label>市場の需給状態: <span id="market-status-text">適正</span></label>
+                            <input type="range" id="market-range" min="50" max="250" value="100">
+                            <div class="range-labels">
+                                <span>供給過多</span>
+                                <span>需要過多</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results">
+                        <div class="result-box">
+                            <span class="label">推定月間獲得報酬</span>
+                            <span class="value" id="gross-income">¥0</span>
+                        </div>
+                        <div class="result-box">
+                            <span class="label">推定月間電気代</span>
+                            <span class="value" id="elec-cost">¥0</span>
+                        </div>
+                        <div class="result-box primary-result">
+                            <span class="label">月間利益の目安（日本円)</span>
+                            <span class="value animate-pop" id="net-profit">¥0</span>
+                        </div>
+                        <p class="disclaimer">※ 1 PTS = ¥2.5 換算、計算役務への対価としての目安です。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="features-section">
+        <div class="container text-center">
+            <h2 class="highlight">Start Contributing</h2>
+            <p class="subtitle">エージェントをダウンロードして、計算ネットワークに参加しましょう。</p>
+
+            <div id="version-display" class="hidden" style="margin-top: 20px; font-size: 0.9rem;">
+                <span class="badge"
+                    style="background: rgba(0,243,255,0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-family: 'Orbitron', sans-serif;">
+                    LATEST: <span id="latest-ver-text">v1.3.2</span>
+                </span>
+                <p id="ver-notes"
+                    style="color: var(--text-dim); margin-top: 10px; font-size: 0.8rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                </p>
+            </div>
+
+            <a href="/api/download/latest/win" class="dl-card" id="dl-win">
+                <div class="dl-icon">🪟</div>
+                <div class="dl-info">
+                    <h3>Windows</h3>
+                    <p>v1.3.2 - Bootstrapper (.exe)</p>
+                </div>
+            </a>
+            <a href="/api/download/latest/mac" class="dl-card" id="dl-mac">
+                <div class="dl-icon">🍎</div>
+                <div class="dl-info">
+                    <h3>macOS</h3>
+                    <p>v1.3.2 - Apple Silicon</p>
+                </div>
+            </a>
+            <a href="/api/download/latest/linux" class="dl-card" id="dl-linux">
+                <div class="dl-icon">🐧</div>
+                <div class="dl-info">
+                    <h3>Linux</h3>
+                    <p>v1.3.2 - Generic (.zip)</p>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <section class="features-section" style="background: rgba(255,255,255,0.02);">
+        <div class="container grid-3">
+            <div class="feature-card glass">
+                <div class="icon">🔒</div>
+                <h3>究極の安全性</h3>
+                <p>Wasmサンドボックス技術により、あなたのPCのデータが覗かれたり、システムが悪影響を受けることはありません。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">⚡</div>
+                <h3>放置で稼げる</h3>
+                <p>複雑な設定は不要。リソースを割り当てるだけで、世界中の計算リクエストを自動で処理します。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">💰</div>
+                <h3>透明な報酬体系</h3>
+                <p>市場の需給に応じて報酬がダイナミックに変化。貢献度はブロックチェーン技術で正確に記録されます。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 ZEN KEN PoC. All Rights Reserved.</p>
+            <div class="footer-links">
+                <a href="/legal/terms.html">利用規約</a>
+                <a href="/legal/privacy.html">プライバシーポリシー</a>
+                <a href="whitepaper.md">Whitepaper</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const specSelect = document.getElementById('spec-select');
+        const nodeRange = document.getElementById('node-range');
+        const serviceSelect = document.getElementById('service-select');
+        const hoursRange = document.getElementById('hours-range');
+        const elecRange = document.getElementById('elec-range');
+        const marketRange = document.getElementById('market-range');
+
+        const nodeVal = document.getElementById('node-val');
+        const hoursVal = document.getElementById('hours-val');
+        const elecVal = document.getElementById('elec-val');
+        const marketStatusText = document.getElementById('market-status-text');
+
+        const grossIncomeDisplay = document.getElementById('gross-income');
+        const elecCostDisplay = document.getElementById('elec-cost');
+        const netProfitDisplay = document.getElementById('net-profit');
+
+        const BASE_PTS_TO_YEN = 2.5;
+
+        function calculate() {
+            const selectedSpec = specSelect.options[specSelect.selectedIndex];
+            const baseIncomePts = parseFloat(selectedSpec.getAttribute('data-income'));
+            const powerWatt = parseFloat(selectedSpec.getAttribute('data-power'));
+
+            const numNodes = parseInt(nodeRange.value);
+            const serviceMult = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-mult'));
+            const hoursPerDay = parseInt(hoursRange.value);
+            const elecRate = parseInt(elecRange.value);
+            const marketFactor = parseInt(marketRange.value) / 100;
+
+            nodeVal.textContent = numNodes;
+            hoursVal.textContent = hoursPerDay;
+            elecVal.textContent = elecRate;
+
+            if (marketFactor > 1.8) marketStatusText.textContent = "極めて高い需要";
+            else if (marketFactor > 1.2) marketStatusText.textContent = "需要過多";
+            else if (marketFactor < 0.7) marketStatusText.textContent = "供給過多";
+            else marketStatusText.textContent = "適正";
+
+            const monthlyGrossPts = (baseIncomePts * marketFactor * serviceMult * numNodes) * (hoursPerDay / 24) * 30;
+            const monthlyGrossYen = monthlyGrossPts * BASE_PTS_TO_YEN;
+            const monthlyElecCost = (powerWatt / 1000) * hoursPerDay * 30 * elecRate * numNodes;
+            const monthlyNetProfit = monthlyGrossYen - monthlyElecCost;
+
+            grossIncomeDisplay.textContent = `¥${Math.floor(monthlyGrossYen).toLocaleString()}`;
+            elecCostDisplay.textContent = `¥${Math.floor(monthlyElecCost).toLocaleString()}`;
+            netProfitDisplay.textContent = `¥${Math.floor(monthlyNetProfit).toLocaleString()}`;
+
+            netProfitDisplay.style.color = monthlyNetProfit > 0 ? "var(--primary)" : "#ff4d4d";
+        }
+
+        [specSelect, nodeRange, serviceSelect, hoursRange, elecRange, marketRange].forEach(el => {
+            el.addEventListener('input', () => {
+                calculate();
+                netProfitDisplay.classList.remove('animate-pop');
+                void netProfitDisplay.offsetWidth;
+                netProfitDisplay.classList.add('animate-pop');
+            });
+        });
+
+        calculate();
+
+        // Detect OS and highlight recommended card
+        (function detectOS() {
+            const ua = navigator.userAgent;
+            const dlWin = document.getElementById('dl-win');
+            const dlMac = document.getElementById('dl-mac');
+            if (/Mac|iPhone|iPad/.test(ua)) dlMac.classList.add('recommended');
+            else dlWin.classList.add('recommended');
+        })();
+
+        // Fetch latest version from Admin API
+        async function fetchLatestVersion() {
+            try {
+                const res = await fetch('/v1/version');
+                const data = await res.json();
+                if (data && data.version) {
+                    const dlWin = document.getElementById('dl-win');
+                    const dlMac = document.getElementById('dl-mac');
+
+                    // if (data.downloadUrl) dlWin.href = data.downloadUrl;
+                    // if (data.macDownloadUrl) dlMac.href = data.macDownloadUrl;
+
+                    document.getElementById('latest-ver-text').textContent = data.version;
+                    document.getElementById('ver-notes').textContent = data.releaseNotes;
+                    document.getElementById('version-display').classList.remove('hidden');
+                }
+            } catch (e) {
+                console.warn('Failed to fetch latest version info', e);
+            }
+        }
+        fetchLatestVersion();
+    </script>
+</body>
+
+</html>

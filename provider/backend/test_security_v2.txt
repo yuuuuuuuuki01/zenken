@@ -1,0 +1,22 @@
+﻿--- Verifying Staging Hardening (Final Check) ---
+[Test] Attempting boundary traversal via taskId...
+笨・SECURITY SUCCESS: Blocked malicious taskId with error: "Invalid taskId (Security Violation): "../staging-secret" escapes staging boundary"
+笨・VERIFIED: No leak file created.
+node.exe : [StagingManager] 圷 S
+ECURITY ALERT: Invalid taskId (S
+ecurity Violation): "../staging-
+secret" escapes staging boundary
+発生場所 行:1 文字:1
++ & "C:\Program Files\nodejs/nod
+e.exe" "C:\Program Files\nodejs/
+node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: ([StagingManag  
+  er...taging boundary:String   
+ ) [], RemoteException
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 

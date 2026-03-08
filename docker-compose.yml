@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: gigacompute-server
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://giga:computesecret@db:5432/gigacompute
+      - PORT=8081
+      - BQ_ENABLED=false
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server/public:/app/public # ホストのpublicをマウント（開発用）
+
+  db:
+    image: postgres:15-alpine
+    container_name: gigacompute-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=giga
+      - POSTGRES_PASSWORD=computesecret
+      - POSTGRES_DB=gigacompute
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U giga -d gigacompute"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

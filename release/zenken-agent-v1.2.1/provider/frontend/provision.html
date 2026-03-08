@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute | Agent Provisioning</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        .provision-card {
+            max-width: 600px;
+            margin: 4rem auto;
+            border: 1px solid var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+        }
+
+        .consent-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border: 1px solid var(--glass-border);
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 4px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-install {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            border: none;
+            border-radius: 4px;
+            color: black;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-install:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.4);
+        }
+
+        .btn-install:disabled {
+            filter: grayscale(1);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .setup-steps {
+            display: none;
+            text-align: left;
+            margin-top: 2rem;
+        }
+
+        .step {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.5;
+        }
+
+        .step.active {
+            opacity: 1;
+            color: var(--accent-cyan);
+        }
+
+        .step.done {
+            opacity: 1;
+            color: var(--accent-emerald);
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow-bg"></div>
+    <div class="container">
+        <div class="provision-card glass">
+            <header style="margin-bottom: 1.5rem;">
+                <div class="logo">
+                    <span class="logo-icon">💠</span>
+                    <h1>GIGA<span class="accent">COMPUTE</span> <small>PROVISIONING</small></h1>
+                </div>
+            </header>
+
+            <p style="font-size: 0.9rem; color: var(--text-dim);">GigaCompute
+                ネットワークへようこそ。このエージェントをセットアップして、マシンの演算リソースを提供しましょう。</p>
+
+            <div class="consent-box">
+                <strong>[利用規約・同意事項]</strong><br>
+                1. あなたのマシンのCPUリソースをネットワークタスクに使用します。<br>
+                2. タスク実行中はマシンの負荷が上昇する可能性があります。<br>
+                3. 正確な計算結果を提供することで、報酬（GigaPoints）を獲得できます。<br>
+                4. 意図的な誤回答や不正行為は、スラッシング（信頼低下）の対象となります。<br>
+                5. 実行されるタスクは暗号化されたサンドボックス内で処理されます。
+            </div>
+
+            <div id="form-container">
+                <div class="input-group">
+                    <label for="agent-name">AGENT DISPLAY NAME</label>
+                    <input type="text" id="agent-name" placeholder="例: My-Power-Rig" value="RemoteAgent">
+                </div>
+
+                <div class="input-group">
+                    <label>SAVE LOCATION (CURRENT)</label>
+                    <input type="text" id="save-path" readonly disabled>
+                    <small style="color: grey; font-size: 0.7rem;">現在の展開ディレクトリに構築されます。</small>
+                </div>
+
+                <button id="btn-agree" class="btn-install">同意してインストールを開始</button>
+            </div>
+
+            <div id="setup-steps" class="setup-steps">
+                <div class="step" id="step-npm">
+                    <div class="status-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <span>パッケージ依存関係のインストール (npm install)</span>
+                </div>
+                <div class="step" id="step-config">
+                    <div class="status-icon">○</div>
+                    <span>構成プロファイルの生成 (initialization)</span>
+                </div>
+                <div class="step" id="step-done">
+                    <div class="status-icon">○</div>
+                    <span>準備完了！</span>
+                </div>
+
+                <div id="finish-msg" style="display: none; text-align: center; margin-top: 2rem;">
+                    <p style="color: var(--accent-emerald); font-weight: bold; margin-bottom: 1rem;">セットアップが完了しました！</p>
+                    <button class="btn-install" style="background: var(--accent-emerald); color: black;"
+                        onclick="location.href='http://localhost:3001'">ダッシュボードを開く</button>
+                    <p style="font-size: 0.7rem; color: var(--text-dim); margin-top: 1rem;">(※ start.bat / start.sh
+                        を使用して次回から直接起動できます)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('save-path').value = window.location.pathname; // Simplified
+
+        const btnAgree = document.getElementById('btn-agree');
+        const formContainer = document.getElementById('form-container');
+        const setupSteps = document.getElementById('setup-steps');
+
+        btnAgree.onclick = async () => {
+            const agentName = document.getElementById('agent-name').value;
+
+            formContainer.style.display = 'none';
+            setupSteps.style.display = 'block';
+            document.getElementById('step-npm').className = 'step active';
+
+            try {
+                const response = await fetch('/api/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agentName })
+                });
+
+                if (response.ok) {
+                    document.getElementById('step-npm').className = 'step done';
+                    document.getElementById('step-npm').querySelector('.status-icon').innerHTML = '✓';
+
+                    document.getElementById('step-config').className = 'step done';
+                    document.getElementById('step-config').querySelector('.status-icon').innerHTML = '✓';
+
+                    document.getElementById('step-done').className = 'step done';
+                    document.getElementById('step-done').querySelector('.status-icon').innerHTML = '✓';
+
+                    document.getElementById('finish-msg').style.display = 'block';
+                } else {
+                    alert('エラーが発生しました。ログを確認してください。');
+                }
+            } catch (e) {
+                alert('通信エラー: ' + e.message);
+            }
+        };
+    </script>
+</body>
+
+</html>

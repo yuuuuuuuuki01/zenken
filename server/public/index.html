@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenKen - 日本の計算力で、重要インフラを支える</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/branding/logo-transparent.png">
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">ZEN KEN</div>
+            <nav>
+                <a href="/" class="active">HOME</a>
+                <a href="/agent.html">FOR AGENTS</a>
+                <a href="/client.html">FOR CLIENTS</a>
+                <a href="/client-portal" class="nav-highlight">Client Login</a>
+                <a href="/worker-portal" class="nav-highlight">Worker Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-image" id="hero-image"></div>
+        <div class="container hero-content">
+            <h1>眠っている計算力が、<br><span class="highlight">日本の未来を紡ぐ。</span></h1>
+            <p>ZEN KEN (全計算) は、日本中の余剰リソースを統合し、<br>主権を保った計算基盤を構築する国家規模のプロジェクトです。</p>
+            <div class="cta-group">
+                <a href="/client.html" class="btn btn-primary">計算力を利用する (CLIENT)</a>
+                <a href="/agent.html" class="btn btn-secondary">計算力を提供する (AGENT)</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="metrics-bar">
+        <div class="container metrics-grid">
+            <div class="metric">
+                <span class="m-label">ACTIVE NODES</span>
+                <span class="m-value" id="live-nodes">1,248</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">TOTAL SUPPLY (TFLOPS)</span>
+                <span class="m-value" id="live-supply">85,420</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">24H TASKS</span>
+                <span class="m-value" id="live-tasks">5,240,192</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">AVG UNIT PRICE</span>
+                <span class="m-value highlight" id="live-price">1.25 PTS</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="comparison-section">
+        <div class="container">
+            <h2 class="text-center">Why <span class="highlight">ZEN KEN</span>?</h2>
+            <p class="text-center subtitle">海外依存からの脱却と、圧倒的なコスト・パフォーマンス</p>
+
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>比較項目</th>
+                            <th class="zenken-col">ZEN KEN (全計算)</th>
+                            <th>海外メガクラウド</th>
+                            <th>海外GPUマーケット</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>コスト (1 TFLOPS辺り)</td>
+                            <td class="zenken-col"><span class="check-v">最安 (余剰リソース)</span></td>
+                            <td>極めて高い (データセンター維持)</td>
+                            <td>安価</td>
+                        </tr>
+                        <tr>
+                            <td>レイテンシ (国内利用)</td>
+                            <td class="zenken-col"><span class="check-v">超低遅延 (国内エッジ)</span></td>
+                            <td>中程度 (海外サーバー経由)</td>
+                            <td>不安定 (グローバル)</td>
+                        </tr>
+                        <tr>
+                            <td>データ主権・安全性</td>
+                            <td class="zenken-col"><span class="check-v">完全国内完結</span></td>
+                            <td>海外法規の適用リスク</td>
+                            <td>不透明</td>
+                        </tr>
+                        <tr>
+                            <td>環境負荷 (CO2削減)</td>
+                            <td class="zenken-col"><span class="check-v">極低 (既存電力再利用)</span></td>
+                            <td>高い (巨大DC新設)</td>
+                            <td>中程度</td>
+                        </tr>
+                        <tr>
+                            <td>導入・開発体験</td>
+                            <td class="zenken-col"><span class="check-v">Antigravity直結 / Wasm</span></td>
+                            <td>複雑な構成・専門性</td>
+                            <td>英語UI / 複雑な管理</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <section id="edge-vision" class="edge-section">
+        <div class="container text-center">
+            <h2 class="highlight">一億総計算機：日本全土が巨大な脳になる</h2>
+            <p class="subtitle">特定の誰かが儲かるのではない。全国民のPCが連携し、世界最強の「国産ローカルエッジ網」を構築する。</p>
+
+            <div class="edge-grid">
+                <div class="glass edge-card">
+                    <div class="edge-content">
+                        <h3>日本独自の分散型インフラ</h3>
+                        <div class="benefit-list">
+                            <div class="benefit-item">
+                                <span class="b-icon">⚡</span>
+                                <div>
+                                    <h4>物理的距離の圧倒的優位</h4>
+                                    <p>海外クラウドには不可能な「超低遅延」。東京のデータは東京のPCで、大阪の推論は大阪のPCで。この「近さ」が、リアルタイムAI時代のプレミアム価値になります。
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="benefit-item">
+                                <span class="b-icon">🇯🇵</span>
+                                <div>
+                                    <h4>計算の主権奪還</h4>
+                                    <p>機密性の高い国内データを海外へ一滴も流さない。日本固有の法規制やプライバシーを守り抜く「主権インフラ」だからこそ、国内企業からの莫大な需要が集まります。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edge-scale">
+                        <div class="scale-box">
+                            <span class="s-label">SCALING ECONOMY</span>
+                            <h4>一世帯 5台規模の貢献</h4>
+                            <p>家庭や小規模オフィスから参加するだけで、地域を支える重要な「エッジ拠点」となります。</p>
+                            <div class="scale-stats">
+                                <div class="ss-item">
+                                    <span class="ss-label">想定月間貢献報酬</span>
+                                    <span class="ss-value highlight">¥350,000 ~</span>
+                                </div>
+                            </div>
+                            <p class="ss-note">※地産地消型のエッジ需要が成立した場合の論理値</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="edge-vision" class="edge-section">
+        <div class="container text-center">
+            <h2 class="highlight">一億総計算機：日本全土が巨大な脳になる</h2>
+            <p class="subtitle">特定の誰かが儲かるのではない。全国民のPCが連携し、世界最強の「国産ローカルエッジ網」を構築する。</p>
+
+            <div class="edge-grid">
+                <div class="glass edge-card">
+                    <div class="edge-content">
+                        <h3>なぜ、ZEN KEN は価値が高いのか？</h3>
+                        <div class="benefit-list">
+                            <div class="benefit-item">
+                                <span class="b-icon">⚡</span>
+                                <div>
+                                    <h4>物理的距離の圧倒的優位</h4>
+                                    <p>海外クラウドには不可能な「超低遅延」。東京のデータは東京のPCで、大阪の推論は大阪のPCで。この「近さ」が、リアルタイムAI時代のプレミアム価値になります。
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="benefit-item">
+                                <span class="b-icon">🇯🇵</span>
+                                <div>
+                                    <h4>計算の主権奪還</h4>
+                                    <p>機密性の高い国内データを海外へ一滴も流さない。日本固有の法規制やプライバシーを守り抜く「主権インフラ」だからこそ、国内企業からの莫大な需要が集まります。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edge-scale">
+                        <div class="scale-box">
+                            <span class="s-label">SCALING ECONOMY</span>
+                            <h4>一世帯 5台規模の貢献</h4>
+                            <p>特別なプロである必要はありません。家庭や小規模オフィスから5台程度のノードが参加するだけで、それは地域を支える重要な「エッジ拠点」となります。</p>
+                            <div class="scale-stats">
+                                <div class="ss-item">
+                                    <span class="ss-label">想定月間貢献報酬</span>
+                                    <span class="ss-value highlight">¥350,000 ~</span>
+                                </div>
+                            </div>
+                            <p class="ss-note">※地産地消型のエッジ需要が成立した場合の論理値</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="features-section">
+        <div class="container grid-3">
+            <div class="feature-card glass">
+                <div class="icon">⚡</div>
+                <h3>放置で稼げる</h3>
+                <p>複雑な設定は不要。Agentをインストールし、リソースを割り当てるだけで、世界中の計算リクエストを自動で処理します。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">🔒</div>
+                <h3>究極の安全性</h3>
+                <p>Wasmサンドボックス技術により、あなたのPCのデータが覗かれたり、システムが悪影響を受けることはありません。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">🇯🇵</div>
+                <h3>日本の富を還流</h3>
+                <p>海外巨大資本に支払っていた推論コストを、日本の個人の手に。国内循環型の新しい経済圏を構築します。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 ZEN KEN PoC. All Rights Reserved.</p>
+            <div class="footer-links">
+                <a href="/legal/terms.html">利用規約</a>
+                <a href="/legal/privacy.html">プライバシーポリシー</a>
+                <a href="/legal/worker-agreement.html">ワーカー参加規約</a>
+                <a href="whitepaper.md">Whitepaper</a>
+                <a href="https://github.com/zenken-project" target="_blank">GitHub</a>
+                <a href="https://twitter.com/zenken_project" target="_blank">Twitter</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal removed — download flow only -->
+
+    <script>
+        const liveNodes = document.getElementById('live-nodes');
+        const liveTasks = document.getElementById('live-tasks');
+        const liveSupply = document.getElementById('live-supply');
+
+        async function updateLiveMetrics() {
+            try {
+                const API_BASE = window.location.origin;
+                const res = await fetch(`${API_BASE}/api/stats/realtime`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const nodes = data.activeNodes || 0;
+                    const tasks = data.tasks24h || 0;
+                    const supply = data.tflops || 0;
+
+                    liveNodes.textContent = nodes.toLocaleString();
+                    liveTasks.textContent = tasks.toLocaleString();
+                    if (liveSupply) liveSupply.textContent = parseFloat(supply).toLocaleString();
+                }
+            } catch (err) {
+                console.log('Stats fetch failed', err);
+            }
+            setTimeout(updateLiveMetrics, 5000);
+        }
+
+        updateLiveMetrics();
+    </script>
+</body>
+
+</html>

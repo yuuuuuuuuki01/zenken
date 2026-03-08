@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute Developer Portal</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dark-theme">
+    <div class="sidebar">
+        <div class="logo">GIGA<span class="accent">COMPUTE</span></div>
+        <nav>
+            <a href="#" class="active">概要</a>
+            <a href="#">支払い & GCP</a>
+            <a href="#">APIキー</a>
+            <a href="#">タスク履歴</a>
+            <a href="#">設定</a>
+        </nav>
+        <div class="user-profile" id="user-info">
+            <div class="avatar">D</div>
+            <div class="info">
+                <span class="name">開発者アカウント</span>
+                <span class="email">dev@example.com</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="content">
+        <header>
+            <h1>開発者ダッシュボード</h1>
+            <div class="header-actions">
+                <div class="points-badge">
+                    <span class="label">保有残高</span>
+                    <span id="points-balance" class="value">0</span> <small>GCP</small>
+                </div>
+                <button class="btn-primary" onclick="portal.buyPoints()">ポイントを購入</button>
+            </div>
+        </header>
+
+        <section class="overview-grid">
+            <div class="card glass">
+                <h3>API インフラ</h3>
+                <div class="api-key-box">
+                    <label>公開 API キー</label>
+                    <div class="key-field">
+                        <input type="password" value="giga_live_xxxxxxxxxxxxxx" readonly id="api-key">
+                        <button onclick="portal.toggleKey()">👁️</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card glass">
+                <h3>稼働ネットワーク</h3>
+                <div class="stat">
+                    <span class="label">利用可能ノード数</span>
+                    <span class="value" id="node-count">0</span>
+                </div>
+                <div class="stat">
+                    <span class="label">ローカルエッジ・カバー率</span>
+                    <span class="value">100%</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="docs-section glass">
+            <h2>SDK クイックスタート</h2>
+            <div class="tabs">
+                <button class="tab-link active" onclick="portal.openTab(event, 'sdk-python')">Python</button>
+                <button class="tab-link" onclick="portal.openTab(event, 'sdk-js')">JavaScript</button>
+                <button class="tab-link" onclick="portal.openTab(event, 'agent-download')">エージェント配布</button>
+            </div>
+            <div id="sdk-python" class="tab-content" style="display:block">
+                <p class="sdk-desc">Python 用 GigaCompute SDK を使用して、数行のコードで計算ジョブを投入できます。</p>
+                <pre><code>import requests
+
+API_KEY = "YOUR_KEY_HERE"
+TASK = {
+    "taskId": "task-101",
+    "type": "wasm",
+    "payload": {"module": "compute.wasm"}
+}
+
+res = requests.post(
+    "https://api.gigacompute.io/v1/dev/task/submit",
+    json=TASK,
+    headers={"Authorization": f"Bearer {API_KEY}"}
+)
+print(res.json())</code></pre>
+            </div>
+            <div id="sdk-js" class="tab-content" style="display:none">
+                <p class="sdk-desc">Node.js やブラウザから直接 GigaCompute ネットワークを利用可能です。</p>
+                <pre><code>const res = await fetch('https://api.gigacompute.io/v1/dev/task/submit', {
+    method: 'POST',
+    body: JSON.stringify({
+        taskId: 'task-102',
+        type: 'wasm',
+        payload: { module: 'compute.wasm' }
+    }),
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+    }
+});
+const data = await res.json();
+console.log(data);</code></pre>
+            </div>
+            <div id="agent-download" class="tab-content" style="display:none">
+                <p class="sdk-desc">自社リソースをワーカーとして提供するためのエージェントを配布しています。インストール不要で即座に稼働可能です。</p>
+                <div class="download-grid">
+                    <button class="btn-download"
+                        onclick="portal.downloadAgent('Windows', '/downloads/gigacompute-agent-win-x64.zip')">
+                        <span class="icon">🪟</span> Windows (.zip) をダウンロード
+                    </button>
+                    <button class="btn-download"
+                        onclick="portal.downloadAgent('macOS (ARM)', '/downloads/gigacompute-agent-macos-arm64.zip')">
+                        <span class="icon">🍎</span> macOS (Apple Silicon) をダウンロード
+                    </button>
+                    <button class="btn-download"
+                        onclick="portal.downloadAgent('macOS (Intel)', '/downloads/gigacompute-agent-macos-x64.zip')">
+                        <span class="icon">💻</span> macOS (Intel) をダウンロード
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="task-monitoring glass">
+            <h2>リアルタイム・タスクモニター</h2>
+            <div class="monitor-container">
+                <div id="active-tasks-list" class="task-cards-grid">
+                    <div class="empty-msg">実行中のタスクはありません。</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/portal.js"></script>
+</body>
+
+</html>

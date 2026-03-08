@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Clients - ZEN KEN | 日本最強のオンデマンド計算基盤</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/branding/logo-transparent.png">
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">ZEN KEN</div>
+            <nav>
+                <a href="/">HOME</a>
+                <a href="/agent.html">FOR AGENTS</a>
+                <a href="/client.html" class="active">FOR CLIENTS</a>
+                <a href="/client-portal" class="nav-highlight">Client Login</a>
+                <a href="/worker-portal" class="nav-highlight">Worker Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="sub-hero">
+        <div class="container text-center">
+            <h1>あなたのコードに、<br><span class="highlight">数万台のGPUを直結。</span></h1>
+            <p>ZEN KEN Client SDKを使えば、重い大規模計算やAI推論を瞬時に日本中のエッジPCへオフロード。<br>海外クラウドを遥かに凌ぐコストパフォーマンスと、国内完結の低遅延を実現します。</p>
+            <div class="cta-group" style="margin-top: 30px;">
+                <a href="/client-portal" class="btn btn-primary">今すぐ始める (Client Portal)</a>
+                <a href="#usecases" class="btn btn-secondary">ユースケースを見る</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="developer" class="developer-section">
+        <div class="container">
+            <div class="glass dev-card">
+                <div class="dev-content">
+                    <h2>External Brain SDK</h2>
+                    <h3>Antigravity & VS Code 連携</h3>
+                    <p>AI コーディングツールから直接、重い演算を GigaCompute ネットワークへオフロード。ローカルマシンの負荷を引き上げることなく、数秒で数万のノードを並列稼働させることができます。
+                    </p>
+                    <ul class="dev-features">
+                        <li><span>✔</span> 1クリックで大規模推論を並列化</li>
+                        <li><span>✔</span> 日本国内のみのノード指定が可能</li>
+                        <li><span>✔</span> 従量課金 (PTS) によるコスト最適化</li>
+                    </ul>
+                    <a href="/client-portal" class="btn btn-primary">APIキーを発行する</a>
+                </div>
+                <div class="dev-visual">
+                    <div class="code-box">
+                        <pre><code>// ZEN KEN Client SDK Example
+import { zenken } from '@zenken/sdk';
+
+const result = await zenken.offload({
+  task: "batch_llm_inference",
+  input: data,
+  priority: "high",
+  region: "japan-only"
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="usecases" class="comparison-section">
+        <div class="container">
+            <h2 class="text-center">Use <span class="highlight">Cases</span></h2>
+            <div class="usecase-grid">
+                <div class="usecase-card glass">
+                    <h3>LLM / 生成AI 推論</h3>
+                    <p>大量のプロンプトを並列処理。国内エッジノードを利用することで、個人情報を海外へ出さずに安全かつ高速に推論を実行できます。</p>
+                </div>
+                <div class="usecase-card glass">
+                    <h3>物理 / 構造シミュレーション</h3>
+                    <p>膨大な計算資源を必要とする解析タスクを、ネットワーク上の数千台のPCに分割して実行。従来のHPC（スパコン）を借りるより圧倒的に低コストです。</p>
+                </div>
+                <div class="usecase-card glass">
+                    <h3>動画エンコード / レンダリング</h3>
+                    <p>高解像度動画や3Dレンダリングのバッチ処理。手元のマシンを専有することなく、バックグラウンドで高速に完了させます。</p>
+                </div>
+                <div class="usecase-card glass">
+                    <h3>サイバーセキュリティ解析</h3>
+                    <p>トラフィック分析やマルウェア解析など、大量のデータ処理をセキュアなWasmサンドボックス上で並列実行します。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section" style="background: rgba(0, 243, 255, 0.02);">
+        <div class="container grid-3">
+            <div class="feature-card glass">
+                <div class="icon">🇯🇵</div>
+                <h3>データ主権の保証</h3>
+                <p>「Japan-Only」オプションにより、すべての計算プロセスを国内ノードのみで完結。機密情報の取り扱いに最適です。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">⚡</div>
+                <h3>極超低レイテンシ</h3>
+                <p>ユーザーから物理的に近いエッジノードを選択。リアルタイムAIやインタラクティブなサービスでその真価を発揮します。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">💎</div>
+                <h3>柔軟な価格体系</h3>
+                <p>基本料金ゼロの従量課金。必要な時に、必要な分だけ、日本中の計算力をオンデマンドで召喚できます。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 ZEN KEN PoC. All Rights Reserved.</p>
+            <div class="footer-links">
+                <a href="/legal/terms.html">利用規約</a>
+                <a href="/legal/privacy.html">プライバシーポリシー</a>
+                <a href="https://github.com/zenken-project">API Docs</a>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

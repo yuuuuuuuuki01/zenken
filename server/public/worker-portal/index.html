@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute Node Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="overlay active">
+        <div class="login-card glass-panel">
+            <h1 class="brand-title">GIGA<span>COMPUTE</span></h1>
+            <p class="subtitle">ノード管理 Webアクセス</p>
+
+            <div class="auth-tabs" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button id="tab-login-btn" onclick="switchLoginTab('login')" class="btn-text active"
+                    style="flex:1; border-bottom: 2px solid var(--accent-primary); color: #fff; padding-bottom:5px;">ログイン</button>
+                <button id="tab-register-btn" onclick="switchLoginTab('register')" class="btn-text"
+                    style="flex:1; border-bottom: 2px solid transparent; padding-bottom:5px;">新規登録</button>
+            </div>
+
+            <!-- Error Message Area -->
+            <div id="auth-error-msg"
+                style="color: #ff4d4d; font-size: 0.9rem; margin-bottom: 15px; text-align: center;"></div>
+
+            <!-- LOGIN FORM -->
+            <form id="login-form" action="/auth/worker-login-simple" method="POST">
+                <div class="input-group">
+                    <label>メールアドレス</label>
+                    <input type="email" name="email" required placeholder="owner@example.com">
+                </div>
+                <div class="input-group">
+                    <label>パスワード</label>
+                    <input type="password" name="password" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-primary glow-effect">Nexusシステムへ接続</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="register-form" action="/auth/worker-register-simple" method="POST" style="display: none;">
+                <div class="input-group">
+                    <label>ユーザー名</label>
+                    <input type="text" name="name" required placeholder="山田 太郎">
+                </div>
+                <div class="input-group">
+                    <label>メールアドレス</label>
+                    <input type="email" name="email" required placeholder="owner@example.com">
+                </div>
+                <div class="input-group">
+                    <label>パスワード</label>
+                    <input type="password" name="password" required placeholder="••••••••">
+                </div>
+                <div id="consent-group" style="margin-top: 15px; font-size: 0.85rem; color: var(--text-muted);">
+                    <label
+                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin-bottom: 10px;">
+                        <input type="checkbox" name="terms" required checked>
+                        <span>
+                            <a href="/legal/terms.html" target="_blank"
+                                style="color: var(--accent-primary); text-decoration: none;">利用規約</a>・
+                            <a href="/legal/privacy.html" target="_blank"
+                                style="color: var(--accent-primary); text-decoration: none;">プライバシーポリシー</a>に同意する
+                        </span>
+                    </label>
+                </div>
+                <button type="submit" class="btn-primary glow-effect">アカウント作成</button>
+            </form>
+
+            <script>
+                function switchLoginTab(mode) {
+                    const lForm = document.getElementById('login-form');
+                    const rForm = document.getElementById('register-form');
+                    const lBtn = document.getElementById('tab-login-btn');
+                    const rBtn = document.getElementById('tab-register-btn');
+
+                    if (mode === 'login') {
+                        lForm.style.display = 'block';
+                        rForm.style.display = 'none';
+                        lBtn.style.borderBottomColor = 'var(--accent-primary)';
+                        lBtn.style.color = '#fff';
+                        rBtn.style.borderBottomColor = 'transparent';
+                        rBtn.style.color = 'var(--text-muted)';
+                    } else {
+                        lForm.style.display = 'none';
+                        rForm.style.display = 'block';
+                        rBtn.style.borderBottomColor = 'var(--accent-primary)';
+                        rBtn.style.color = '#fff';
+                        lBtn.style.borderBottomColor = 'transparent';
+                        lBtn.style.color = 'var(--text-muted)';
+                    }
+                }
+
+                // URL Params error handling
+                const params = new URLSearchParams(window.location.search);
+                const error = params.get('error');
+                if (error) {
+                    const msgEl = document.getElementById('auth-error-msg');
+                    if (error === 'invalid_credentials') msgEl.textContent = 'メールアドレスまたはパスワードが正しくありません。';
+                    else if (error === 'email_in_use') msgEl.textContent = 'このメールアドレスは既に使用されています。';
+                    else msgEl.textContent = 'サーバーエラーが発生しました。';
+                }
+            </script>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app-container" class="app-hidden">
+        <nav class="top-nav glass-panel">
+            <div class="nav-brand">GIGA<span>COMPUTE</span> Nodes</div>
+            <div class="nav-user">
+                <span id="user-email">user@example.com</span>
+                <button id="support-btn" class="btn-text" style="margin-right: 15px; color: #ffaa00;">🛟 サポート</button>
+                <button id="profile-btn" class="btn-text"
+                    style="margin-right: 15px; color: var(--accent-primary)">設定</button>
+                <button id="logout-btn" class="btn-text">ログアウト</button>
+            </div>
+        </nav>
+
+        <main class="dashboard-grid">
+            <!-- Global Stats -->
+            <section class="stat-panel glass-panel">
+                <h3>生涯獲得収益 (総額)</h3>
+                <div class="value-huge highlight">
+                    $<span id="total-revenue">0.00</span>
+                </div>
+                <button id="withdraw-btn" class="btn-primary glow-effect"
+                    style="margin-top: 15px; padding: 10px; font-size: 0.9rem;">出金申請</button>
+            </section>
+
+            <section class="stat-panel glass-panel">
+                <h3>稼動中のノード数</h3>
+                <div class="value-huge">
+                    <span id="active-nodes-count">0</span> / <span id="total-nodes-count">0</span>
+                </div>
+            </section>
+
+            <!-- Node List List -->
+            <section class="node-list-panel glass-panel">
+                <div class="panel-header">
+                    <h2>接続済みのノード一覧</h2>
+                    <div>
+                        <button id="generate-token-btn" class="btn-text"
+                            style="color: var(--accent-primary); margin-right: 15px; border: 1px solid var(--accent-primary); padding: 5px 10px; border-radius: 4px;">➕
+                            新規ノード用トークン発行</button>
+                        <button id="refresh-btn" class="btn-icon">🔄</button>
+                    </div>
+                </div>
+                <div class="node-grid" id="node-grid">
+                    <!-- Nodes injected here via JS -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Support Section (Hidden by default) -->
+        <section id="support-section" style="display: none; padding: 30px; max-width: 900px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-family: Orbitron;">🛟 サポート & デバッグ</h2>
+                <button id="back-to-dashboard" class="btn-text"
+                    style="color: var(--accent-primary); border: 1px solid var(--accent-primary); padding: 5px 12px; border-radius: 4px;">←
+                    ダッシュボードに戻る</button>
+            </div>
+
+            <!-- FAQ -->
+            <div class="glass-panel" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">❓ よくある質問 (FAQ)</h3>
+                <div class="faq-list">
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                            エージェントがサーバーに接続できません</div>
+                        <div class="faq-answer">
+                            トークンが有効であるか確認してください。「新規ノード用トークン発行」で新しいトークンを生成し、エージェント設定を更新してください。下の診断パネルもお役に立ちます。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">タスクが割り当てられません
+                        </div>
+                        <div class="faq-answer">クライアントからのタスク投入がない場合、待機状態となります。また、TrustScore
+                            が低いと高セキュリティタスクが割り当てられない場合があります。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">出金申請の状態を確認したい
+                        </div>
+                        <div class="faq-answer">出金申請は管理者が手動で承認します。通常 1〜3 営業日以内に処理されます。却下された場合はポイントが自動返還されます。</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">OpenAI/Gemini
+                            APIキーの設定方法</div>
+                        <div class="faq-answer">
+                            上部「設定」ボタンからプロフィール設定を開き、OpenAIまたはGeminiのAPIキーを入力して保存してください。エージェントがLLMタスクを実行するために必要です。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Worker Diagnostics -->
+            <div class="glass-panel" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>🔍 エージェント診断</h3>
+                    <button id="btn-worker-diagnostics" class="btn-primary glow-effect"
+                        style="padding: 8px 16px; font-size: 0.85rem;">診断実行</button>
+                </div>
+                <div id="worker-diag-result" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="diag-card"
+                            style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">アカウント</div>
+                            <div id="wdiag-account"></div>
+                        </div>
+                        <div class="diag-card"
+                            style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">ノード接続</div>
+                            <div id="wdiag-nodes"></div>
+                        </div>
+                        <div class="diag-card"
+                            style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">サーバー情報</div>
+                            <div id="wdiag-server"></div>
+                        </div>
+                        <div class="diag-card"
+                            style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">トランザクション</div>
+                            <div id="wdiag-txs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ticket Form -->
+            <div class="glass-panel" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 15px;">✉️ お問い合わせ</h3>
+                <div class="input-group">
+                    <label>カテゴリ</label>
+                    <select id="w-ticket-category">
+                        <option value="agent">エージェント・接続</option>
+                        <option value="billing">報酬・出金</option>
+                        <option value="task">タスク実行</option>
+                        <option value="account">アカウント</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                    <label>件名</label>
+                    <input type="text" id="w-ticket-subject" placeholder="問題の概要を入力">
+                </div>
+                <div class="input-group" style="margin-top: 12px;">
+                    <label>詳細</label>
+                    <textarea id="w-ticket-message" rows="5" placeholder="問題の詳細をお書きください..."></textarea>
+                </div>
+                <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <button id="btn-w-submit-ticket" class="btn-primary glow-effect"
+                        style="padding: 10px 20px;">送信する</button>
+                    <span id="w-ticket-msg" style="font-size: 0.9rem;"></span>
+                </div>
+            </div>
+
+            <!-- Ticket History -->
+            <div class="glass-panel" style="padding: 20px; border-radius: 12px;">
+                <h3 style="margin-bottom: 15px;">📋 お問い合わせ履歴</h3>
+                <div id="w-ticket-history">
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">読み込み中...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Profile Settings Modal -->
+    <div id="profile-modal" class="overlay">
+        <div class="login-card glass-panel" style="position: relative;">
+            <button class="modal-close-btn"
+                onclick="document.getElementById('profile-modal').classList.remove('active')">&times;</button>
+            <h2 class="brand-title">PROFILE <span>SETTINGS</span></h2>
+            <p class="subtitle">プロフィール設定</p>
+            <form id="profile-form">
+                <div class="input-group">
+                    <label>表示名 (Name)</label>
+                    <input type="text" id="profile-name" placeholder="新しい表示名">
+                </div>
+                <div class="input-group">
+                    <label>新しいパスワード (New Password)</label>
+                    <input type="password" id="profile-password" placeholder="変更する場合のみ入力">
+                </div>
+                <div class="input-group">
+                    <label>OpenAI APIキー <a href="https://platform.openai.com/api-keys" target="_blank"
+                            style="color: var(--accent-primary); font-size: 0.8rem; text-decoration: none; margin-left: 5px;">(取得ページ↗)</a></label>
+                    <input type="password" id="profile-openai-key" placeholder="sk-...">
+                </div>
+                <div class="input-group">
+                    <label>Gemini APIキー <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                            style="color: var(--accent-primary); font-size: 0.8rem; text-decoration: none; margin-left: 5px;">(取得ページ↗)</a></label>
+                    <input type="password" id="profile-gemini-key" placeholder="AIza...">
+                </div>
+                <div class="error-msg" id="profile-error"></div>
+                <div class="success-msg" id="profile-success"
+                    style="color: var(--success); text-align: center; margin-bottom: 1rem; font-size: 0.9rem;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="close-profile-btn" class="btn-text"
+                        style="flex:1; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;">キャンセル</button>
+                    <button type="submit" class="btn-primary glow-effect" style="flex:1; margin-top: 0;">保存する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdraw-modal" class="overlay">
+        <div class="login-card glass-panel" style="position: relative;">
+            <button class="modal-close-btn"
+                onclick="document.getElementById('withdraw-modal').classList.remove('active')">&times;</button>
+            <h2 class="brand-title">WITHDRAW <span>FUNDS</span></h2>
+            <p class="subtitle">出金申請</p>
+            <form id="withdraw-form">
+                <div class="input-group">
+                    <label>現在の残高 (可視化)</label>
+                    <div style="font-size: 1.5rem; color: var(--accent-primary); margin-bottom: 10px;">$<span
+                            id="withdraw-balance-display">0.00</span></div>
+                </div>
+                <div class="input-group">
+                    <label>出金希望額 (USD)</label>
+                    <input type="number" id="withdraw-amount" min="10" step="0.01" required placeholder="10.00">
+                </div>
+                <div class="input-group">
+                    <label>出金先ウォレット/アカウント</label>
+                    <input type="text" id="withdraw-destination" required placeholder="例: paypal-email@example.com">
+                </div>
+                <div class="error-msg" id="withdraw-error"></div>
+                <div class="success-msg" id="withdraw-success"
+                    style="color: var(--success); text-align: center; margin-bottom: 1rem; font-size: 0.9rem;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="close-withdraw-btn" class="btn-text"
+                        style="flex:1; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;">キャンセル</button>
+                    <button type="submit" class="btn-primary glow-effect" style="flex:1; margin-top: 0;">申請する</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Token Copy Modal -->
+    <div id="token-modal" class="overlay">
+        <div class="login-card glass-panel" style="max-width: 600px; position: relative;">
+            <button class="modal-close-btn"
+                onclick="document.getElementById('token-modal').classList.remove('active')">&times;</button>
+            <h2 class="brand-title">PAIRING <span>TOKEN</span></h2>
+            <p class="subtitle">エージェント連携用トークン</p>
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 15px;">新しいPCで
+                GigaCompute Agent を起動し、以下のトークンを入力してください。</p>
+            <textarea id="generated-token-text" readonly
+                style="width: 100%; height: 100px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-primary); color: var(--text-main); font-family: monospace; border-radius: 4px; resize: none;"></textarea>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" id="close-token-btn" class="btn-text"
+                    style="flex:1; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;">閉じる</button>
+                <button type="button" id="copy-token-btn" class="btn-primary glow-effect"
+                    style="flex:1; margin-top: 0;">コピーする</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

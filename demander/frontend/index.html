@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenKen - 日本の計算力で、重要インフラを支える</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="/branding/logo-transparent.png">
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">ZEN KEN</div>
+            <nav>
+                <a href="#simulator">収益を計算</a>
+                <a href="/client-portal" class="nav-highlight">Client Portal</a>
+                <a href="/worker-portal" class="nav-highlight">Worker Portal</a>
+                <a href="#security">安全性</a>
+                <a href="#download" class="btn btn-outline">ダウンロード</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="hero-image" id="hero-image"></div>
+        <div class="container hero-content">
+            <h1>眠っている計算力が、<br><span class="highlight">日本の未来を紡ぐ。</span></h1>
+            <p>ZEN KEN (全計算) は、日本中の余剰リソースを統合し、<br>主権を保った計算基盤を構築する国家規模のプロジェクトです。</p>
+            <div class="cta-group" id="download">
+                <a href="/agent.zip" class="btn btn-primary download-btn" id="dl-win" style="margin-bottom:10px;">
+                    <span class="dl-icon">🪟</span> Windows 版をダウンロード
+                </a>
+
+                <div class="mac-terminal-box" id="dl-mac">
+                    <p class="mac-subtitle"><span class="dl-icon">🍎</span> macOS 版 (ターミナルで実行)</p>
+                    <div class="code-wrapper">
+                        <code>curl -sL https://zenken-agent.local/install.sh | bash</code>
+                        <button class="copy-btn"
+                            onclick="navigator.clipboard.writeText('curl -sL https://' + window.location.host + '/install.sh | bash'); this.textContent='✓ Copied'; this.classList.add('copied'); setTimeout(()=> { this.textContent='Copy'; this.classList.remove('copied'); }, 2000)">Copy</button>
+                    </div>
+                </div>
+            </div>
+            <p class="dl-note" id="dl-note"></p>
+        </div>
+    </section>
+
+    <section class="metrics-bar">
+        <div class="container metrics-grid">
+            <div class="metric">
+                <span class="m-label">ACTIVE NODES</span>
+                <span class="m-value" id="live-nodes">-</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">TOTAL SUPPLY (TFLOPS)</span>
+                <span class="m-value" id="live-supply">-</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">24H TASKS</span>
+                <span class="m-value" id="live-tasks">-</span>
+            </div>
+            <div class="metric">
+                <span class="m-label">AVG UNIT PRICE</span>
+                <span class="m-value highlight" id="live-price">- PTS</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="simulator" class="simulator-section">
+        <div class="container">
+            <h2 class="text-center">Earnings <span class="highlight">Simulator</span></h2>
+            <p class="text-center subtitle">あなたのデバイスが稼ぎ出す「不労所得」を今すぐ計算</p>
+
+            <div class="simulator-card glass">
+                <div class="simulator-grid">
+                    <div class="inputs">
+                        <div class="input-group">
+                            <label>デバイスのスペックを選択</label>
+                            <select id="spec-select">
+                                <option value="rtx4090" data-power="350" data-income="500">NVIDIA RTX 4090 (最強)</option>
+                                <option value="rtx4070" data-power="200" data-income="280">NVIDIA RTX 4070/80 (上級)
+                                </option>
+                                <option value="rtx3060" data-power="170" data-income="180">NVIDIA RTX 30系列 (標準)</option>
+                                <option value="mac-m3" data-power="40" data-income="150">Apple M2/M3/M4 (Mac)</option>
+                                <option value="cpu-only" data-power="65" data-income="40">CPUのみ (Core i7 / Ryzen 7)
+                                </option>
+                                <option value="api-only" data-power="0" data-income="120">AI API 連結 (電気代ゼロ)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label>1日の稼働時間: <span id="hours-val">12</span>時間</label>
+                            <input type="range" id="hours-range" min="1" max="24" value="12">
+                        </div>
+
+                        <div class="input-group">
+                            <label>電気代単価: <span id="elec-val">31</span>円/kWh</label>
+                            <input type="range" id="elec-range" min="20" max="50" value="31">
+                        </div>
+
+                        <div class="input-group">
+                            <label>デバイス台数 (Scaling): <span id="node-val">1</span>台</label>
+                            <input type="range" id="node-range" min="1" max="20" value="1">
+                        </div>
+
+                        <div class="input-group">
+                            <label>役務の種類 (Service Type)</label>
+                            <select id="service-select">
+                                <option value="general" data-mult="1.0">一般演算 (LLM 推論 / 解析)</option>
+                                <option value="edge" data-mult="1.5">超ローカルエッジ (低遅延 / 地産地消)</option>
+                                <option value="confidential" data-mult="2.2">機密計算 (高セキュリティ / 国産主権)</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group market-adjuster">
+                            <label>市場の需給状態: <span id="market-status-text">適正</span></label>
+                            <input type="range" id="market-range" min="50" max="250" value="100">
+                            <div class="range-labels">
+                                <span>供給過多</span>
+                                <span>需要過多</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results">
+                        <div class="result-box">
+                            <span class="label">推定月間獲得報酬</span>
+                            <span class="value" id="gross-income">¥0</span>
+                        </div>
+                        <div class="result-box">
+                            <span class="label">推定月間電気代</span>
+                            <span class="value" id="elec-cost">¥0</span>
+                        </div>
+                        <div class="result-box primary-result">
+                            <span class="label">月間貢献報酬の目安 (補填後)</span>
+                            <span class="value animate-pop" id="net-profit">¥0</span>
+                        </div>
+                        <button class="btn btn-primary btn-full" id="save-to-db-btn"
+                            style="margin-top: 15px; display: none;">結果をダッシュボードに保存</button>
+                        <p class="disclaimer">※ 1 PTS = ¥2.5 換算、計算役務への対価としての目安です。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="developer" class="developer-section">
+        <div class="container">
+            <div class="glass dev-card">
+                <div class="dev-content">
+                    <h2>For Developers: <span class="highlight">External Brain</span></h2>
+                    <h3>VS Code & Antigravity 連携</h3>
+                    <p>Antigravity などの AI コーディングツールから、重い演算や推論を GigaCompute ネットワークへ瞬時にオフロード。ローカルマシンの負荷をゼロに保ちながら、数万台の GPU
+                        をあなたの IDE に直結します。</p>
+                    <ul class="dev-features">
+                        <li><span>✔</span> ローカル推論の高速化</li>
+                        <li><span>✔</span> 大規模シミュレーションの並列実行</li>
+                        <li><span>✔</span> セキュアな Wasm サンドボックス実行</li>
+                    </ul>
+                    <a href="#" class="btn btn-primary">開発者向けドキュメント</a>
+                </div>
+                <div class="dev-visual">
+                    <!-- ここに VS Code と GigaCompute の連携を示すビジュアル -->
+                    <div class="code-box">
+                        <pre><code>// Antigravity optimization
+await gigacompute.offload({
+    task: "heavy_inference",
+    nodes: 50
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="edge-vision" class="edge-section">
+        <div class="container text-center">
+            <h2 class="highlight">一億総計算機：日本全土が巨大な脳になる</h2>
+            <p class="subtitle">特定の誰かが儲かるのではない。全国民のPCが連携し、世界最強の「国産ローカルエッジ網」を構築する。</p>
+
+            <div class="edge-grid">
+                <div class="glass edge-card">
+                    <div class="edge-content">
+                        <h3>なぜ、ZEN KEN は価値が高いのか？</h3>
+                        <div class="benefit-list">
+                            <div class="benefit-item">
+                                <span class="b-icon">⚡</span>
+                                <div>
+                                    <h4>物理的距離の圧倒的優位</h4>
+                                    <p>海外クラウドには不可能な「超低遅延」。東京のデータは東京のPCで、大阪の推論は大阪のPCで。この「近さ」が、リアルタイムAI時代のプレミアム価値になります。
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="benefit-item">
+                                <span class="b-icon">🇯🇵</span>
+                                <div>
+                                    <h4>計算の主権奪還</h4>
+                                    <p>機密性の高い国内データを海外へ一滴も流さない。日本固有の法規制やプライバシーを守り抜く「主権インフラ」だからこそ、国内企業からの莫大な需要が集まります。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edge-scale">
+                        <div class="scale-box">
+                            <span class="s-label">SCALING ECONOMY</span>
+                            <h4>一世帯 5台規模の貢献</h4>
+                            <p>特別なプロである必要はありません。家庭や小規模オフィスから5台程度のノードが参加するだけで、それは地域を支える重要な「エッジ拠点」となります。</p>
+                            <div class="scale-stats">
+                                <div class="ss-item">
+                                    <span class="ss-label">想定月間貢献報酬</span>
+                                    <span class="ss-value highlight">¥350,000 ~</span>
+                                </div>
+                            </div>
+                            <p class="ss-note">※地産地消型のエッジ需要が成立した場合の論理値</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="features-section">
+        <div class="container grid-3">
+            <div class="feature-card glass">
+                <div class="icon">⚡</div>
+                <h3>放置で稼げる</h3>
+                <p>複雑な設定は不要。Agentをインストールし、リソースを割り当てるだけで、世界中の計算リクエストを自動で処理します。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">🔒</div>
+                <h3>究極の安全性</h3>
+                <p>Wasmサンドボックス技術により、あなたのPCのデータが覗かれたり、システムが悪影響を受けることはありません。</p>
+            </div>
+            <div class="feature-card glass">
+                <div class="icon">🇯🇵</div>
+                <h3>日本の富を還流</h3>
+                <p>海外巨大資本に支払っていた推論コストを、日本の個人の手に。国内循環型の新しい経済圏を構築します。</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 ZEN KEN PoC. All Rights Reserved.</p>
+            <div class="footer-links">
+                <a href="whitepaper.md">Whitepaper</a>
+                <a href="https://github.com/zenken-project" target="_blank">GitHub</a>
+                <a href="https://twitter.com/zenken_project" target="_blank">Twitter</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal removed — download flow only -->
+
+    <script>
+        const specSelect = document.getElementById('spec-select');
+        const nodeRange = document.getElementById('node-range');
+        const serviceSelect = document.getElementById('service-select');
+        const hoursRange = document.getElementById('hours-range');
+        const elecRange = document.getElementById('elec-range');
+        const marketRange = document.getElementById('market-range');
+
+        const nodeVal = document.getElementById('node-val');
+        const hoursVal = document.getElementById('hours-val');
+        const elecVal = document.getElementById('elec-val');
+        const marketStatusText = document.getElementById('market-status-text');
+
+        const grossIncomeDisplay = document.getElementById('gross-income');
+        const elecCostDisplay = document.getElementById('elec-cost');
+        const netProfitDisplay = document.getElementById('net-profit');
+
+        const liveNodes = document.getElementById('live-nodes');
+        const liveTasks = document.getElementById('live-tasks');
+        const livePrice = document.getElementById('live-price');
+
+        const BASE_PTS_TO_YEN = 2.5;
+
+        async function updateLiveMetrics() {
+            try {
+                const API_BASE = window.location.origin;
+                const res = await fetch(`${API_BASE}/api/stats/realtime`);
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // バックエンドから実数を取得 (デモ用のベース数値や乱数は完全に廃止)
+                    const nodes = data.activeNodes || 0;
+                    const tasks = data.tasks24h || 0;
+                    const supply = data.tflops || 0;
+
+                    liveNodes.textContent = nodes.toLocaleString();
+                    liveTasks.textContent = tasks.toLocaleString();
+
+                    const liveSupply = document.getElementById('live-supply');
+                    if (liveSupply) liveSupply.textContent = parseFloat(supply).toLocaleString();
+                }
+            } catch (err) {
+                console.log('サーバーから統計を取得できませんでした', err);
+            }
+            setTimeout(updateLiveMetrics, 3000);
+        }
+
+        function calculate() {
+            const selectedSpec = specSelect.options[specSelect.selectedIndex];
+            const baseIncomePts = parseFloat(selectedSpec.getAttribute('data-income'));
+            const powerWatt = parseFloat(selectedSpec.getAttribute('data-power'));
+
+            const numNodes = parseInt(nodeRange.value);
+            const serviceMult = parseFloat(serviceSelect.options[serviceSelect.selectedIndex].getAttribute('data-mult'));
+            const hoursPerDay = parseInt(hoursRange.value);
+            const elecRate = parseInt(elecRange.value);
+            const marketFactor = parseInt(marketRange.value) / 100;
+
+            nodeVal.textContent = numNodes;
+            hoursVal.textContent = hoursPerDay;
+            elecVal.textContent = elecRate;
+
+            // 市場ステータステキストの更新
+            if (marketFactor > 1.8) marketStatusText.textContent = "極めて高い需要";
+            else if (marketFactor > 1.2) marketStatusText.textContent = "需要過多";
+            else if (marketFactor < 0.7) marketStatusText.textContent = "供給過多";
+            else marketStatusText.textContent = "適正";
+
+            // 計算ロジック
+            // 基本報酬 = (単価Pts * 市場要因 * 役務倍率 * 台数) * (時間/24)
+            const monthlyGrossPts = (baseIncomePts * marketFactor * serviceMult * numNodes) * (hoursPerDay / 24) * 30;
+            const monthlyGrossYen = monthlyGrossPts * BASE_PTS_TO_YEN;
+
+            // 電気代 = (W / 1000) * 時間 * 30日 * 単価 * 台数
+            const monthlyElecCost = (powerWatt / 1000) * hoursPerDay * 30 * elecRate * numNodes;
+
+            const monthlyNetProfit = monthlyGrossYen - monthlyElecCost;
+
+            // 数値のアニメーション表示
+            grossIncomeDisplay.textContent = `¥${Math.floor(monthlyGrossYen).toLocaleString()}`;
+            elecCostDisplay.textContent = `¥${Math.floor(monthlyElecCost).toLocaleString()}`;
+
+            const netValDisplay = Math.floor(monthlyNetProfit);
+            netProfitDisplay.textContent = `¥${netValDisplay.toLocaleString()}`;
+
+            if (netValDisplay > 0) {
+                netProfitDisplay.style.color = "var(--primary)";
+            } else {
+                netProfitDisplay.style.color = "#ff4d4d";
+            }
+        }
+
+        [specSelect, nodeRange, serviceSelect, hoursRange, elecRange, marketRange].forEach(el => {
+            el.addEventListener('input', () => {
+                calculate();
+                netProfitDisplay.classList.remove('animate-pop');
+                void netProfitDisplay.offsetWidth; // reflow
+                netProfitDisplay.classList.add('animate-pop');
+            });
+        });
+
+        calculate();
+        updateLiveMetrics();
+
+        // OS Detection & Download Button Highlighting
+        (function detectOS() {
+            const ua = navigator.userAgent;
+            const dlNote = document.getElementById('dl-note');
+            const dlWin = document.getElementById('dl-win');
+            const dlMac = document.getElementById('dl-mac');
+            if (/Mac|iPhone|iPad/.test(ua)) {
+                dlMac.classList.add('recommended');
+                dlNote.textContent = '🍎 macOS が検出されました — Mac版がおすすめです';
+            } else {
+                dlWin.classList.add('recommended');
+                dlNote.textContent = '🪟 Windows が検出されました — Windows版がおすすめです';
+            }
+        })();
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                const target = document.querySelector(targetId);
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEN KEN Cockpit | Settings</title>
+    <link rel="icon" type="image/png" href="/icon.png">
+    <link rel="stylesheet" href="/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        .settings-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            z-index: 10;
+            position: relative;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow-bg"></div>
+
+    <div class="container settings-container">
+        <header style="margin-bottom: 20px;">
+            <div class="logo-section" style="cursor: pointer;" onclick="window.location.href='/index.html'">
+                <h1 style="font-size: 1.5rem;">← 戻る</h1>
+            </div>
+        </header>
+
+        <div class="modal-content glass" style="text-align: left;">
+            <div class="modal-header">
+                <h3>⚙️ AI SERVICES SETTINGS</h3>
+            </div>
+
+            <div style="margin: 20px 0;">
+                <h4
+                    style="font-family: Orbitron; font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 15px; letter-spacing: 1px;">
+                    CONNECTION SETTINGS
+                </h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                    システムが接続する本番・またはローカルサーバーのURLと、あなたのアカウントに紐付けるペアリングトークンを設定します。
+                </p>
+
+                <label
+                    style="font-size: 0.85rem; color: var(--accent-secondary); display: block; margin-bottom: 5px;">Server
+                    URL</label>
+                <input type="text" id="input-server-url" placeholder="wss://gigacompute-fleet.web.app"
+                    style="width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; margin-bottom: 15px; border-radius: 4px;">
+
+                <label
+                    style="font-size: 0.85rem; color: var(--accent-secondary); display: block; margin-bottom: 5px;">Pairing
+                    Token (コックピット連携用)</label>
+                <input type="text" id="input-pairing-token" placeholder="eyJhb..."
+                    style="width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; margin-bottom: 15px; border-radius: 4px;">
+
+                <label
+                    style="font-size: 0.85rem; color: var(--accent-secondary); display: block; margin-bottom: 5px;">Node
+                    Alias (表示名)</label>
+                <input type="text" id="input-node-name" placeholder="My Agent Node"
+                    style="width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; margin-bottom: 25px; border-radius: 4px;">
+
+                <div style="border-top: 1px solid var(--glass-border); padding-top: 20px; margin-top: 10px;">
+                    <h4
+                        style="font-family: Orbitron; font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 15px; letter-spacing: 1px;">
+                        AI SERVICES SETTINGS
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                        エージェントが高度な推論タスクを実行するために、AIプロバイダーのAPIキーを設定してください。キーはローカル及びセキュアな統合サーバーのみに保存されます。</p>
+
+                    <label
+                        style="font-size: 0.85rem; color: var(--accent-secondary); display: block; margin-bottom: 5px;">OpenAI
+                        API Key <a href="https://platform.openai.com/api-keys" target="_blank"
+                            style="color: var(--accent-primary); font-size: 0.75rem; text-decoration: none; margin-left: 5px; border-bottom: 1px dotted var(--accent-primary);">取得ページを開く
+                            ↗</a></label>
+                    <input type="password" id="input-openai-key" placeholder="sk-..."
+                        style="width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; margin-bottom: 15px; border-radius: 4px;">
+
+                    <label
+                        style="font-size: 0.85rem; color: var(--accent-secondary); display: block; margin-bottom: 5px;">Google
+                        Gemini API Key <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                            style="color: var(--accent-primary); font-size: 0.75rem; text-decoration: none; margin-left: 5px; border-bottom: 1px dotted var(--accent-primary);">取得ページを開く
+                            ↗</a></label>
+                    <input type="password" id="input-gemini-key" placeholder="AIza..."
+                        style="width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; border-radius: 4px; margin-bottom: 25px;">
+
+                    <!-- Resource Allocation Section -->
+                    <div style="border-top: 1px solid var(--glass-border); padding-top: 20px; margin-top: 10px;">
+                        <h4
+                            style="font-family: Orbitron; font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 15px; letter-spacing: 1px;">
+                            RESOURCE ALLOCATION</h4>
+
+                        <div class="mode-selector" style="margin-bottom: 25px;">
+                            <label
+                                style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: block;">Quick
+                                Mode</label>
+                            <div class="segmented-control">
+                                <button type="button" onclick="app.setQuickMode('eco')" id="mode-eco">ECO</button>
+                                <button type="button" onclick="app.setQuickMode('balanced')" id="mode-balanced"
+                                    class="active">BALANCED</button>
+                                <button type="button" onclick="app.setQuickMode('turbo')" id="mode-turbo">TURBO</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">CPU Cores</label>
+                                <span id="val-cpu-limit"
+                                    style="font-family: Orbitron; font-size: 0.9rem; color: var(--text-primary);">--</span>
+                            </div>
+                            <input type="range" id="range-cpu" min="1" max="16" step="1"
+                                style="width: 100%; margin: 0; padding: 0; height: 6px; cursor: pointer;">
+                            <div id="diff-cpu"
+                                style="font-size: 0.7rem; margin-top: 5px; color: var(--accent-success); height: 1em;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Memory (GB)</label>
+                                <span id="val-mem-limit"
+                                    style="font-family: Orbitron; font-size: 0.9rem; color: var(--text-primary);">--</span>
+                            </div>
+                            <input type="range" id="range-mem" min="1" max="64" step="1"
+                                style="width: 100%; margin: 0; padding: 0; height: 6px; cursor: pointer;">
+                            <div id="diff-mem"
+                                style="font-size: 0.7rem; margin-top: 5px; color: var(--accent-success); height: 1em;">
+                            </div>
+                        </div>
+
+                        <div id="sim-revenue-box"
+                            style="background: rgba(0,255,163,0.05); border: 1px solid rgba(0,255,163,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                            <div
+                                style="font-size: 0.65rem; color: var(--accent-success); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                                Estimated Monthly Revenue</div>
+                            <div style="font-family: Orbitron; font-size: 1.2rem; color: var(--accent-success);">$<span
+                                    id="sim-revenue">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-msg"
+                    style="margin-bottom: 10px; font-size: 0.8rem; text-align: center; height: 1.2em;">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-close-settings" class="btn-secondary" style="flex: 1;"
+                        onclick="window.location.href='/index.html'">キャンセルして戻る</button>
+                    <button id="btn-save-settings" class="btn-confirm" style="flex: 1;">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden slider duplicates for logic parity -->
+        <div style="display: none;">
+            <input type="range" id="w-range-cpu" value="4">
+            <input type="range" id="w-range-mem" value="8">
+            <input type="range" id="w-range-disk" value="50">
+        </div>
+
+        <script src="/js/ui.js"></script>
+        <script src="/js/app.js"></script>
+</body>
+
+</html>

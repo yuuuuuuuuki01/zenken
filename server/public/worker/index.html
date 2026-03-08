@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEN KEN Cockpit | Agent GUI</title>
+    <link rel="icon" type="image/png" href="/icon.png">
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="wizard-modal" class="modal wizard">
+        <div class="modal-content glass" style="max-width: 450px;">
+            <div id="wizard-main" class="wizard-step active">
+                <h2 style="font-family: Orbitron; color: var(--accent-primary); margin-bottom: 2rem; line-height: 1.2;">
+                    ZEN <span style="color: #fff;">KEN</span><br><small
+                        style="font-size: 0.6em; opacity: 0.8; letter-spacing: 2px;">Setup Your
+                        Node</small></h2>
+
+                <div class="onboarding-summary glass"
+                    style="background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2); padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <p
+                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">
+                        Recommended Settings for your PC</p>
+                    <div style="display: flex; justify-content: space-around; align-items: center;">
+                        <div style="text-align: center; flex: 1;">
+                            <div id="wiz-cpu-rec" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">--
+                                Cores</div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">CPU Allocation
+                            </div>
+                        </div>
+                        <div
+                            style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; flex: 1;">
+                            <div id="wiz-mem-rec" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">-- GB
+                            </div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">Memory Allocation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pair-section">
+                    <p
+                        style="font-size: 0.8rem; line-height: 1.5; margin-bottom: 1.2rem; color: var(--text-secondary);">
+                        ポータルから取得したトークンを使用して、このデバイスをアカウントに紐付けます。</p>
+                    <input type="hidden" id="wiz-token-input" value="">
+
+                    <div id="wizard-pair-status"
+                        style="font-size: 0.75rem; margin-bottom: 1rem; height: 1.2em; text-align: center; font-weight: bold;">
+                    </div>
+
+                    <button id="btn-magic-pair" onclick="wizard.pair()" class="btn-confirm"
+                        style="margin-bottom: 1rem; width: 100%;">アカウント連携して開始</button>
+
+                    <div
+                        style="margin: 1rem 0; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.8rem;">
+                            アカウントをお持ちでない場合は</p>
+                        <button onclick="wizard.openWebPortal()" class="btn-secondary"
+                            style="font-size: 0.7rem; padding: 0.5rem 1rem; width: 100%;">🌐 新規登録・トークン取得</button>
+                    </div>
+
+                    <a href="#" id="link-manual-token" onclick="wizard.showManual(true)"
+                        style="display: block; text-align: center; font-size: 0.65rem; color: var(--text-secondary); text-decoration: none; border-bottom: 1px dotted #666; width: fit-content; margin: 10px auto 0;">手動でトークンを入力する</a>
+                </div>
+
+                <div id="manual-token-section" style="display: none;">
+                    <p style="font-size: 0.8rem; margin-bottom: 1rem;">ペアリングトークンを入力してください：</p>
+                    <input type="text" id="manual-token-input" placeholder="eyJhbGci..."
+                        style="margin-bottom: 1.5rem; width: 100%;">
+
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="wizard.showManual(false)" class="btn-secondary" style="flex: 1;">戻る</button>
+                        <button onclick="wizard.pairManual()" class="btn-confirm" style="flex: 1;">紐付け完了</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-advanced" class="settings-tab-content" style="display: none;">
+                <div style="margin: 20px 0;">
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 8px;">📶
+                            最大使用帯域 (Bandwidth Limit)</label>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="range" id="range-bandwidth" min="1" max="100" step="1" value="50"
+                                style="flex: 1;">
+                            <span id="val-bandwidth" style="font-family: Orbitron; font-size: 0.85rem; width: 60px;">50
+                                Mbps</span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 8px;">⏰
+                            稼働スケジュール (Execution Schedule)</label>
+                        <select id="setting-schedule" class="giga-input"
+                            style="width: 100%; font-size: 0.8rem; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: #fff;">
+                            <option value="always">常時稼働 (Always Active)</option>
+                            <option value="night">夜間のみ (Night Only: 22:00 - 08:00)</option>
+                            <option value="idle">PC待機中のみ (When Host is Idle)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom: 10px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-secondary); display: block; margin-bottom: 8px;">🔒
+                            許可するタスクの種類 (Task Filtering)</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <label class="checkbox-label"
+                                style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="allow-llm"> LLM 推論
+                            </label>
+                            <label class="checkbox-label"
+                                style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="allow-scripts"> 実行スクリプト
+                            </label>
+                            <label class="checkbox-label"
+                                style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="allow-crawler"> Webクローリング
+                            </label>
+                            <label class="checkbox-label"
+                                style="font-size: 0.75rem; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" checked id="allow-verify"> 正当性検証
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="wizard-step-success" class="wizard-step" style="text-align: center;">
+                <h2 style="font-family: Orbitron; color: var(--accent-success); letter-spacing: 2px;">WELCOME TO ZEN KEN
+                </h2>
+                <div style="font-size: 3.5rem; margin: 2rem 0;">🌌</div>
+                <p style="margin-bottom: 2rem; font-size: 0.9rem; line-height: 1.6;">セットアップが完了しました。<br>あなたの PC
+                    は計算リソースの提供を通じて<br><span
+                        style="color: var(--accent-success); font-weight: bold;">収益化（日本円）</span>を開始します。</p>
+                <button onclick="wizard.close()" class="btn-confirm" style="width: 100%;">コクピットを表示</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content glass" style="max-width: 450px; text-align: left;">
+            <div class="modal-header">
+                <h3>⚙️ AI SERVICES SETTINGS</h3>
+            </div>
+
+            <div class="settings-tabs"
+                style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border);">
+                <button class="tab-btn active" onclick="ui.switchSettingsTab('basic')">基本設定</button>
+                <button class="tab-btn" onclick="ui.switchSettingsTab('advanced')">詳細設定 & 制限</button>
+            </div>
+
+            <div id="settings-basic" class="settings-tab-content active">
+                <div style="margin: 20px 0;">
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                        エージェントが高度な推論タスクを実行するために、AIプロバイダーのAPIキーを設定してください。</p>
+
+                    <div style="border-top: 1px solid var(--glass-border); padding-top: 20px; margin-top: 10px;">
+                        <h4
+                            style="font-family: Orbitron; font-size: 0.75rem; color: var(--accent-primary); margin-bottom: 15px; letter-spacing: 1px;">
+                            RESOURCE ALLOCATION</h4>
+
+                        <div class="mode-selector" style="margin-bottom: 25px;">
+                            <label
+                                style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: block;">Quick
+                                Mode</label>
+                            <div class="segmented-control">
+                                <button type="button" onclick="app.setQuickMode('eco')" id="mode-eco">ECO</button>
+                                <button type="button" onclick="app.setQuickMode('balanced')" id="mode-balanced"
+                                    class="active">BALANCED</button>
+                                <button type="button" onclick="app.setQuickMode('turbo')" id="mode-turbo">TURBO</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">CPU Cores</label>
+                                <span id="val-cpu-limit"
+                                    style="font-family: Orbitron; font-size: 0.9rem; color: var(--text-primary);">--</span>
+                            </div>
+                            <input type="range" id="range-cpu" min="1" max="16" step="1"
+                                style="width: 100%; margin: 0; padding: 0; height: 6px; cursor: pointer;">
+                            <div id="diff-cpu"
+                                style="font-size: 0.7rem; margin-top: 5px; color: var(--accent-success); height: 1em;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                                <label style="font-size: 0.8rem; color: var(--text-secondary);">Memory (GB)</label>
+                                <span id="val-mem-limit"
+                                    style="font-family: Orbitron; font-size: 0.9rem; color: var(--text-primary);">--</span>
+                            </div>
+                            <input type="range" id="range-mem" min="1" max="64" step="1"
+                                style="width: 100%; margin: 0; padding: 0; height: 6px; cursor: pointer;">
+                            <div id="diff-mem"
+                                style="font-size: 0.7rem; margin-top: 5px; color: var(--accent-success); height: 1em;">
+                            </div>
+                        </div>
+
+                        <div id="sim-revenue-box"
+                            style="background: rgba(0,255,163,0.05); border: 1px solid rgba(0,255,163,0.2); padding: 15px; border-radius: 8px; text-align: center;">
+                            <div
+                                style="font-size: 0.65rem; color: var(--accent-success); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">
+                                Estimated Monthly Revenue</div>
+                            <div style="font-family: Orbitron; font-size: 1.2rem; color: var(--accent-success);">$<span
+                                    id="sim-revenue">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="settings-msg"
+                    style="margin-bottom: 10px; font-size: 0.8rem; text-align: center; height: 1.2em;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="btn-close-settings" class="btn-secondary" style="flex: 1;">キャンセル</button>
+                    <button id="btn-save-settings" class="btn-confirm" style="flex: 1;">保存して同期</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glow-bg"></div>
+
+        <div class="container">
+            <header>
+                <div class="logo-section">
+                    <h1>ZEN<span class="accent">KEN</span> <small>ワーカー・コクピット</small></h1>
+                    <div class="safety-badge">
+                        <span class="icon">🛡️</span> Isolate & Secure
+                    </div>
+                    <button id="btn-settings" class="btn-secondary"
+                        style="margin-left: 20px; padding: 5px 10px; font-size: 0.85rem;">⚙️ 設定</button>
+                </div>
+                <div id="connection-status" class="status-badge disconnected">オフライン</div>
+            </header>
+
+            <main>
+                <div class="ticker-container" id="drop-zone">
+                    <div class="ticker-label">リアルタイム総売上 (Gross Revenue)</div>
+                    <div class="ticker-value">
+                        <span class="ticker-currency">$</span>
+                        <span id="ticker-amount">0.000000</span>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-around; width: 100%; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.7rem; color: var(--text-secondary);">推計コスト</div>
+                            <div style="font-size: 1.2rem; color: var(--accent-secondary); font-family: Orbitron;">
+                                $<span id="roi-cost">0.0000</span></div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.7rem; color: var(--accent-success);">純利益 (Net Profit)</div>
+                            <div
+                                style="font-size: 1.5rem; color: var(--accent-success); font-family: Orbitron; font-weight: bold;">
+                                $<span id="roi-net">0.000000</span></div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 0.7rem; color: var(--text-secondary);">月間着地予想</div>
+                            <div style="font-size: 1.2rem; color: var(--text-primary); font-family: Orbitron;">$<span
+                                    id="roi-monthly">0.00</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="performance-grid">
+                    <div class="stat-card performance">
+                        <div class="label">計算パワー出力</div>
+                        <div class="value"><span id="stat-perf">0</span> <small
+                                style="font-size:0.5em; opacity:0.5;">OPS</small></div>
+                    </div>
+                    <div class="stat-card trust">
+                        <div class="label">信頼ランク</div>
+                        <div class="value"><span id="stat-trust">0.00</span></div>
+                        <div class="trust-progress-container">
+                            <div id="trust-progress-bar" class="trust-progress-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card liveness">
+                        <div class="label">継続稼働時間</div>
+                        <div class="value" id="stat-liveness">00:00:00</div>
+                    </div>
+                </section>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                    <div class="main-column">
+                        <section class="activity-section glass">
+                            <h2>システム・アクティビティ</h2>
+                            <div id="current-activity" class="current-activity-box">
+                                <div class="empty-msg">待機中...</div>
+                            </div>
+                        </section>
+
+                        <!-- Live Console Section -->
+                        <section class="console-section glass">
+                            <div class="panel-header"
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                <h2 style="margin-bottom: 0;">システム・トレース <small
+                                        style="font-size: 0.6rem; opacity: 0.5;">(Live Logs)</small></h2>
+                                <span class="status-indicator"
+                                    style="font-size: 0.6rem; color: var(--accent-primary);">●
+                                    MONITORING</span>
+                            </div>
+                            <div id="live-console" class="console-box">
+                                <div class="log-line info">Initialising secure execution environment...</div>
+                                <div class="log-line info">Waiting for incoming tasks from Nexus Network...</div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="side-column">
+                        <section class="wallet-section glass" style="padding: 1.5rem;">
+                            <h2>ウォレット</h2>
+                            <div class="wallet-stats">
+                                <div class="wallet-stat">
+                                    <span class="label">総収益額</span>
+                                    <div class="value income" id="wallet-income">0.00</div>
+                                </div>
+                            </div>
+                            <button onclick="app.withdraw()" class="btn-confirm"
+                                style="margin-top: 1rem; padding: 0.6rem; font-size: 0.76rem;">報酬を引き出す</button>
+                        </section>
+                    </div>
+                </div>
+            </main>
+
+            <footer>
+                <div class="agent-id">エージェント ID: <span id="display-id">---</span></div>
+                <div class="version">コクピット V2.0 // 信頼プロトコル有効</div>
+            </footer>
+        </div>
+
+        <script src="app.js"></script>
+</body>
+
+</html>

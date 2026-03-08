@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute | Client Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@600;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="auth-overlay" class="auth-overlay active">
+        <div class="auth-box glass-card">
+            <h2 style="font-family: Orbitron; margin-bottom: 20px; color: var(--accent-client);">CLIENT PORTAL</h2>
+
+            <!-- タブ切り替え -->
+            <div
+                style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                <button id="tab-login"
+                    style="background: none; border: none; color: var(--accent-client); font-weight: 700; cursor: pointer; font-size: 0.95rem; padding: 5px 10px; border-bottom: 2px solid var(--accent-client);">LOGIN</button>
+                <button id="tab-register"
+                    style="background: none; border: none; color: var(--text-muted); font-weight: 700; cursor: pointer; font-size: 0.95rem; padding: 5px 10px; border-bottom: 2px solid transparent;">NEW
+                    ACCOUNT</button>
+            </div>
+
+            <div id="auth-msg" style="color: #ff4d4d; font-size: 0.9rem; margin-bottom: 15px; min-height: 1em;"></div>
+
+            <!-- ログインフォーム -->
+            <form id="form-login" action="/auth/login-simple" method="POST">
+                <input type="email" name="email" id="login-email" placeholder="Email" class="giga-input" required>
+                <input type="password" name="password" id="login-password" placeholder="Password" class="giga-input"
+                    style="margin-top: 15px;" required>
+                <button type="submit" id="login-btn" class="giga-btn btn-primary"
+                    style="margin-top: 25px; width: 100%;">LOGIN</button>
+            </form>
+
+            <!-- 新規登録フォーム -->
+            <div id="form-register" style="display: none;">
+                <input type="text" id="reg-name" placeholder="Display Name" class="giga-input">
+                <input type="email" id="reg-email" placeholder="Email" class="giga-input" style="margin-top: 15px;">
+                <input type="password" id="reg-password" placeholder="Password (8+ chars)" class="giga-input"
+                    style="margin-top: 15px;">
+                <div style="margin-top: 15px;">
+                    <label
+                        style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted);">
+                        <input type="checkbox" id="reg-terms-consent" style="margin-top: 3px;">
+                        <span>
+                            <a href="/legal/terms.html" target="_blank"
+                                style="color: var(--accent-client); text-decoration: none;">利用規約</a>および
+                            <a href="/legal/privacy.html" target="_blank"
+                                style="color: var(--accent-client); text-decoration: none;">プライバシーポリシー</a>に同意します
+                        </span>
+                    </label>
+                </div>
+                <button id="register-btn" class="giga-btn btn-primary" style="margin-top: 25px; width: 100%;">CREATE
+                    ACCOUNT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ログイン用ロジックのみを読み込む -->
+    <script src="js/login.js"></script>
+</body>
+
+</html>

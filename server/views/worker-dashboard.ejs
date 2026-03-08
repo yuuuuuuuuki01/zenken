@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute | Worker Portal</title>
+    <link rel="stylesheet" href="/worker-portal/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Additional dashboard-specific styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-panel {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-panel h3 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-ui);
+        }
+
+        .value-huge {
+            font-size: 3rem;
+            font-family: var(--font-cyber);
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .value-huge.highlight {
+            color: var(--accent-primary);
+            text-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .node-list-panel {
+            grid-column: 1 / -1;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .node-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .node-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .node-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .highlight-small {
+            color: var(--accent-primary);
+            font-family: var(--font-cyber);
+            font-weight: bold;
+        }
+
+        .history-table-container {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+        }
+
+        .history-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tx-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-reward {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .badge-purchase {
+            background: rgba(0, 229, 255, 0.2);
+            color: #00e5ff;
+        }
+
+        .badge-withdraw {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app-container">
+        <nav class="top-nav glass-panel">
+            <div class="nav-brand">GIGA<span>COMPUTE</span> Nodes</div>
+            <div class="nav-user">
+                <span id="user-display-name">
+                    <%= user.name %> (<%= user.email %>)
+                </span>
+                <button id="profile-btn" class="btn-text"
+                    style="margin-left: 15px; color: var(--accent-primary)">設定</button>
+                <button id="logout-btn" class="btn-text" style="color: var(--danger)">ログアウト</button>
+            </div>
+        </nav>
+
+        <main class="dashboard-grid">
+            <!-- Global Stats -->
+            <section class="stat-panel glass-panel">
+                <h3>生涯獲得収益 (総額)</h3>
+                <div class="value-huge highlight">
+                    $<span id="total-revenue">
+                        <%= user.earningsYen ? (user.earningsYen / 150).toFixed(2) : "0.00" %>
+                    </span>
+                </div>
+                <button id="withdraw-btn" class="btn-primary glow-effect"
+                    style="margin-top: 15px; padding: 10px; font-size: 0.8rem; width: auto; align-self: flex-start;">出金申請</button>
+            </section>
+
+            <section class="stat-panel glass-panel">
+                <h3>接続ノード</h3>
+                <div class="value-huge">
+                    <span id="active-nodes-count">
+                        <%= nodes.filter(n=> n.status === 'idle' || n.status === 'computing').length %>
+                    </span> / <span id="total-nodes-count" style="color: var(--text-muted); font-size: 2rem;">
+                        <%= nodes.length %>
+                    </span>
+                </div>
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <a href="/api/download/latest/win" class="btn-primary"
+                        style="padding: 10px; font-size: 0.8rem; text-decoration: none; text-align: center; flex: 1;">Win版</a>
+                    <a href="/api/download/latest/mac" class="btn-primary"
+                        style="padding: 10px; font-size: 0.8rem; text-decoration: none; text-align: center; flex: 1;">Mac版</a>
+                </div>
+            </section>
+
+            <section class="stat-panel glass-panel">
+                <h3>GigaCompute エージェントをダウンロード</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+                    お使いのOSに合わせてエージェントをダウンロードし、インストールしてください。
+                </p>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/api/download/latest/win" class="btn-primary"
+                        style="padding: 10px; font-size: 0.8rem; text-decoration: none; text-align: center; flex: 1;">Windows版</a>
+                    <a href="/api/download/latest/mac" class="btn-primary"
+                        style="padding: 10px; font-size: 0.8rem; text-decoration: none; text-align: center; flex: 1;">macOS版</a>
+                    <a href="/api/download/latest/linux" class="btn-primary"
+                        style="padding: 10px; font-size: 0.8rem; text-decoration: none; text-align: center; flex: 1;">Linux版</a>
+                </div>
+            </section>
+
+            <!-- Node List -->
+            <section class="node-list-panel glass-panel">
+                <div class="panel-header">
+                    <h2>接続済みのノード一覧</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button id="generate-token-btn" class="btn-text"
+                            style="color: var(--accent-primary); border: 1px solid var(--accent-primary); padding: 5px 12px; border-radius: 4px; font-size: 0.8rem;">
+                            新規トークン発行
+                        </button>
+                        <button id="refresh-btn" class="btn-icon">🔄</button>
+                    </div>
+                </div>
+                <div class="node-grid" id="node-grid">
+                    <div class="node-card">
+                        <div class="node-header">
+                            <span class="node-type">Download Agent</span>
+                        </div>
+                        <div class="node-body">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                                GigaComputeエージェントをダウンロードして、ノードを接続しましょう。
+                            </p>
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <a href="/api/download/latest/win" class="btn-primary"
+                                    style="flex: 1; text-decoration: none; text-align: center;">WIN版</a>
+                                <a href="/api/download/latest/mac" class="btn-primary"
+                                    style="flex: 1; text-decoration: none; text-align: center;">MAC版</a>
+                            </div>
+                        </div>
+                    </div>
+                    <% if (nodes.length===0) { %>
+                        <div class="empty-state">接続されているノードはありません。エージェントをインストールして開始してください。</div>
+                        <% } else { %>
+                            <% nodes.forEach(node=> { %>
+                                <div class="node-card">
+                                    <div class="node-header">
+                                        <span class="node-type">
+                                            <%= node.type || 'AGENT' %>
+                                        </span>
+                                        <span class="node-status-indicator status-<%= node.status %>"
+                                            title="Status: <%= node.status %>"></span>
+                                    </div>
+                                    <div class="node-body">
+                                        <h4
+                                            style="margin: 5px 0 0 0; font-family: var(--font-cyber); font-size: 1rem; color: #fff;">
+                                            <%= node.name || 'Agent Node' %>
+                                        </h4>
+                                        <div class="node-id"
+                                            style="font-size: 0.6rem; color: var(--text-muted); opacity: 0.7;">ID:
+                                            <%= node.id %>
+                                        </div>
+
+                                        <div class="node-stat-row" style="margin-top: 10px;">
+                                            <span class="label">ステータス</span>
+                                            <span
+                                                style="text-transform: capitalize; font-weight: 600; <%= (node.status === 'computing') ? 'color: var(--warning);' : '' %>">
+                                                <%= node.status %>
+                                            </span>
+                                        </div>
+
+                                        <div class="node-stat-row">
+                                            <span class="label">信頼スコア (Trust)</span>
+                                            <span class="highlight-small">
+                                                <%= node.trustScore || '50' %>
+                                            </span>
+                                        </div>
+
+                                        <div class="node-stat-row">
+                                            <span class="label">性能スコア (Perf)</span>
+                                            <span class="highlight-small">
+                                                <%= node.performanceScore || '--' %>
+                                            </span>
+                                        </div>
+
+                                        <div class="node-stat-row">
+                                            <span class="label">報酬受取状況</span>
+                                            <span style="color: var(--success); font-weight: bold;">
+                                                <%= (node.rewardPoints || 0).toFixed(2) %> PTS
+                                            </span>
+                                        </div>
+
+                                        <% if (node.currentTask) { %>
+                                            <div class="node-stat-row"
+                                                style="color: var(--warning); font-size: 0.8rem; border-top: 1px dotted rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px;">
+                                                <span class="label">現在処理中</span>
+                                                <span
+                                                    style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                                    <%= node.currentTask %>
+                                                </span>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                                <% }); %>
+                                    <% } %>
+                </div>
+            </section>
+
+            <!-- Earnings History -->
+            <section class="node-list-panel glass-panel" style="margin-top: 1.5rem;">
+                <div class="panel-header">
+                    <h2>最近の収益履歴 (PTS)</h2>
+                </div>
+                <div class="history-table-container">
+                    <% if (transactions.length===0) { %>
+                        <div class="empty-state">まだ収益履歴はありません。</div>
+                        <% } else { %>
+                            <table class="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>日時</th>
+                                        <th>種別</th>
+                                        <th>内容</th>
+                                        <th>金額 (PTS)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% transactions.forEach(tx=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= new Date(tx.createdAt).toLocaleString('ja-JP') %>
+                                            </td>
+                                            <td>
+                                                <span class="tx-badge badge-<%= tx.type.toLowerCase() %>">
+                                                    <%= tx.type %>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <%= tx.description || '-' %>
+                                            </td>
+                                            <td style="color: var(--success); font-weight: bold;">+<%=
+                                                    tx.amount.toFixed(2) %>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                            <% } %>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modals -->
+        <div id="profile-modal" class="overlay">
+            <div class="login-card glass-panel" style="position: relative;">
+                <button class="modal-close-btn"
+                    onclick="document.getElementById('profile-modal').classList.remove('active')">&times;</button>
+                <h2 class="brand-title">PROFILE <span>SETTINGS</span></h2>
+                <form id="profile-form">
+                    <div class="input-group">
+                        <label>表示名 (Name)</label>
+                        <input type="text" id="profile-name" value="<%= user.name %>">
+                    </div>
+                    <div class="input-group">
+                        <label>新しいパスワード</label>
+                        <input type="password" id="profile-password" placeholder="変更する場合のみ入力">
+                    </div>
+                    <div class="error-msg" id="profile-error"></div>
+                    <button type="submit" class="btn-primary glow-effect">保存する</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="token-modal" class="overlay">
+            <div class="login-card glass-panel" style="max-width: 600px; position: relative;">
+                <button class="modal-close-btn"
+                    onclick="document.getElementById('token-modal').classList.remove('active')">&times;</button>
+                <h2 class="brand-title">PAIRING <span>TOKEN</span></h2>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px;">
+                    このトークンは一度しか表示されません。エージェントの連携設定に使用してください。
+                </p>
+                <textarea id="generated-token-text" readonly
+                    style="width: 100%; height: 100px; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-primary); color: #fff; font-family: monospace; border-radius: 4px; resize: none;"></textarea>
+                <button type="button" id="copy-token-btn" class="btn-primary glow-effect"
+                    style="margin-top: 15px; width: 100%;">コピーする</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.GIGA_USER_HASH = "<%= user.hash %>";
+        window.GIGA_TOKEN = "<%= token %>";
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            window.location.href = '/worker-portal/index.html';
+        });
+
+        document.getElementById('generate-token-btn').addEventListener('click', async () => {
+            try {
+                const res = await fetch('/v1/worker/dashboard/token', {
+                    headers: { 'Authorization': `Bearer ${window.GIGA_TOKEN}` }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('generated-token-text').value = data.token;
+                    document.getElementById('token-modal').classList.add('active');
+                }
+            } catch (e) {
+                console.error('Token generation failed:', e);
+            }
+        });
+
+        document.getElementById('copy-token-btn').addEventListener('click', () => {
+            const txt = document.getElementById('generated-token-text');
+            txt.select();
+            document.execCommand('copy');
+            document.getElementById('copy-token-btn').textContent = 'コピー完了！';
+            setTimeout(() => document.getElementById('copy-token-btn').textContent = 'コピーする', 2000);
+        });
+
+        document.getElementById('profile-btn').addEventListener('click', () => {
+            document.getElementById('profile-modal').classList.add('active');
+        });
+
+        document.getElementById('refresh-btn').addEventListener('click', () => {
+            window.location.reload();
+        });
+    </script>
+</body>
+
+</html>

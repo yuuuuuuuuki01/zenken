@@ -1,0 +1,30 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "CommonJS",
+        "outDir": "./dist",
+        "strict": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "rootDir": "../../"
+    },
+    "ts-node": {
+        "transpileOnly": true
+    },
+    "include": [
+        "./**/*",
+        "../../shared/src/**/*"
+    ],
+    "exclude": [
+        "**/test_*.ts",
+        "**/exploit_*.ts",
+        "**/verify_*.ts",
+        "**/testAuth.ts",
+        "**/testNoCert.ts",
+        "**/testRequester.ts",
+        "**/testVisualization.ts",
+        "**/testWasm.ts",
+        "node_modules"
+    ]
+}

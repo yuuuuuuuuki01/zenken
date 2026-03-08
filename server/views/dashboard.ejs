@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute | Client Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@600;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/client-portal/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+
+<!-- Login form moved to index.html -->
+
+<div class="app-layout" style="display: flex;" id="main-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar glass-panel">
+        <div class="brand">
+            <a href="/" style="text-decoration: none; display: flex; align-items: center;">
+                <span class="logo-text">ZEN <span style="color: var(--accent-client);">KEN</span></span>
+                <span class="badge badge-client">CLIENT</span>
+            </a>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-target="dashboard">
+                <span class="icon">📊</span> Dashboard
+            </a>
+            <a href="#" class="nav-item" data-target="submit-job">
+                <span class="icon">🚀</span> Submit Job
+            </a>
+            <a href="#" class="nav-item" data-target="api-keys">
+                <span class="icon">🔑</span> API Keys
+            </a>
+            <a href="#" class="nav-item" data-target="history">
+                <span class="icon">📜</span> History
+            </a>
+            <a href="#" class="nav-item" data-target="profile">
+                <span class="icon">👤</span> Profile
+            </a>
+            <a href="#" class="nav-item" data-target="tools">
+                <span class="icon">📦</span> Tools & Downloads
+            </a>
+            <a href="#" class="nav-item" data-target="support">
+                <span class="icon">🛟</span> <span data-i18n="support">サポート</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="user-info">
+                <div id="display-name" style="font-weight: 600;">
+                    <%= user.name %>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--text-muted);">
+                    <%= user.email %>
+                </div>
+            </div>
+            <!-- 完全ステートレスなので、ログアウトはただログイン画面に戻るだけ（URLを忘れるだけ） -->
+            <button id="logout-btn" class="giga-btn btn-danger btn-sm"
+                style="width: 100%; margin-top: 15px;">LOGOUT</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-header">
+            <h1 id="page-title" style="font-family: Orbitron; font-size: 1.5rem;">Dashboard</h1>
+            <div class="pts-container glass-card" style="padding: 10px 20px;">
+                <span style="font-size: 0.8rem; color: var(--text-muted); margin-right: 15px;">BALANCE (PTS)</span>
+                <span id="pts-balance"
+                    style="font-family: Orbitron; font-size: 1.5rem; color: #fff; font-weight: bold;">
+                    <%= user.points %>
+                </span>
+                <button id="btn-buy-pts" class="giga-btn btn-outline btn-sm"
+                    style="margin-left: 15px; border-color: var(--accent-client); color: var(--accent-client);">Buy
+                    PTS</button>
+            </div>
+        </header>
+
+        <div class="scroll-area">
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view-section active">
+                <div class="stats-grid">
+                    <div class="stat-card glass-card">
+                        <div class="stat-label">TOTAL JOBS SUBMITTED</div>
+                        <div class="stat-value" id="stat-total-jobs">
+                            <%= jobs.length %>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Magic Link Area (Stateless: Show the current URL as the key) -->
+                <div class="glass-card"
+                    style="margin-top: 20px; text-align: center; border-color: var(--accent-secondary);">
+                    <h3 style="margin-bottom: 10px;">Your Private Portal Link</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px;">Bookmark this URL to
+                        access your dashboard directly without logging in. Do not share it.</p>
+                    <div
+                        style="background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; font-family: monospace; color: var(--accent-client); word-break: break-all;">
+                        <script>document.write(window.location.href);</script>
+                    </div>
+                </div>
+
+                <div class="recent-jobs" style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px;">Recent Jobs</h3>
+                    <div class="table-container glass-card">
+                        <table class="giga-table">
+                            <thead>
+                                <tr>
+                                    <th>JOB ID</th>
+                                    <th>TYPE</th>
+                                    <th>STATUS</th>
+                                    <th>COST (PTS)</th>
+                                    <th>DATE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-tbody">
+                                <% if (jobs.length===0) { %>
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: var(--text-muted);">No jobs
+                                            found.</td>
+                                    </tr>
+                                    <% } else { %>
+                                        <% jobs.forEach(job=> { %>
+                                            <tr>
+                                                <td><span class="badge" style="font-family: monospace;">
+                                                        <%= job.id.substring(0,8) %>
+                                                    </span></td>
+                                                <td>
+                                                    <%= job.type %>
+                                                </td>
+                                                <td><span
+                                                        class="badge <%= job.status === 'completed' ? 'badge-client' : (job.status === 'failed' ? 'badge-danger' : 'badge-worker') %>">
+                                                        <%= job.status.toUpperCase() %>
+                                                    </span></td>
+                                                <td>
+                                                    <%= job.cost.toFixed(2) %>
+                                                </td>
+                                                <td>
+                                                    <%= new Date(job.createdAt).toLocaleString() %>
+                                                </td>
+                                            </tr>
+                                            <% }) %>
+                                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Job View -->
+            <div id="view-submit-job" class="view-section" style="display: none;">
+                <div class="form-card glass-card" style="max-width: 800px;">
+                    <h2 style="margin-bottom: 20px;">Deploy New Task</h2>
+
+                    <div class="input-group">
+                        <label>Task Type</label>
+                        <select id="job-type" class="giga-input">
+                            <option value="llm_inference">LLM Inference (Prompt -> Text)</option>
+                            <option value="script_exec">Node.js Script Execution</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label>Input Data / Prompt</label>
+                        <textarea id="job-input" class="giga-input" rows="8"
+                            placeholder="Enter your prompt or JSON input data here..."></textarea>
+                    </div>
+
+                    <div class="submit-action"
+                        style="margin-top: 30px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 0.9rem;">Estimated Cost:</span>
+                            <span style="font-family: Orbitron; color: #fff; font-size: 1.2rem; margin-left: 10px;">
+                                <span id="estimated-cost-display">--</span> PTS</span>
+                        </div>
+                        <button id="btn-submit-job" class="giga-btn btn-primary">Submit to Network</button>
+                    </div>
+
+                    <div style="margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 20px;">
+                        <a href="#"
+                            onclick="document.getElementById('advanced-job-ops').style.display='block'; this.style.display='none'; return false;"
+                            style="color: var(--accent-client); font-size: 0.8rem; text-decoration: none;">+ Show
+                            Advanced Options</a>
+
+                        <div id="advanced-job-ops" style="display: none;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
+                                <div class="input-group">
+                                    <label style="font-size: 0.75rem;">Required Min Trust Score</label>
+                                    <input type="number" id="job-min-trust" class="giga-input" value="1.0" step="0.5"
+                                        style="padding: 6px;">
+                                </div>
+                                <div class="input-group">
+                                    <label style="font-size: 0.75rem;">Execution Priority</label>
+                                    <select id="job-priority" class="giga-input" style="padding: 6px;">
+                                        <option value="normal">NORMAL</option>
+                                        <option value="high">HIGH (Faster discovery, +20% cost)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="submit-msg" style="margin-top: 15px; text-align: right; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+
+            <!-- API Keys View -->
+            <div id="view-api-keys" class="view-section" style="display: none;">
+                <div class="glass-card" style="max-width: 800px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Developer API Keys</h2>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="new-key-name" class="giga-input" placeholder="e.g. VS Code Extension"
+                            style="flex: 1; max-width: 300px;" />
+                        <button id="btn-generate-key" class="giga-btn btn-primary btn-sm">+ Generate New
+                            Key</button>
+                    </div>
+
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
+                        Use these keys to authenticate your automated systems or the VS Code Extension with the
+                        GigaCompute Network.
+                    </p>
+
+                    <div id="api-keys-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div id="api-key-msg" style="margin-top: 15px; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+
+            <!-- Tools & Downloads View -->
+            <div id="view-tools" class="view-section" style="display: none;">
+                <div class="glass-card" style="max-width: 800px;">
+                    <h2 style="margin-bottom: 20px;">Developer Tools & Downloads</h2>
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px;">
+                        Download the official ZenKen Agent to run compute nodes, or install our editor
+                        extensions to submit tasks directly from your IDE.
+                    </p>
+
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- VS Code Extension -->
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin-bottom: 5px; color: var(--accent-client);">VS Code Extension</h3>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Version 0.1.0 (.vsix)
+                                </div>
+                            </div>
+                            <a href="/downloads/vscode-zenken.vsix" class="giga-btn btn-outline btn-sm"
+                                download>Download</a>
+                        </div>
+
+                        <!-- Agent for Windows -->
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin-bottom: 5px;">ZenKen Agent (Windows)</h3>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Includes Bootstrapper
+                                    (.exe) for Windows GUI mode.</div>
+                            </div>
+                            <a href="/api/download/latest/win" class="giga-btn btn-outline btn-sm">Download
+                                ZIP</a>
+                        </div>
+
+                        <!-- Agent for Mac/Linux -->
+                        <div
+                            style="padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin-bottom: 5px;">ZenKen Agent (Mac/Linux)</h3>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">Headless worker CLI
+                                    designed for UNIX-like systems.</div>
+                            </div>
+                            <a href="/api/download/latest/mac" class="giga-btn btn-outline btn-sm">Download
+                                ZIP</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="view-history" class="view-section" style="display: none;">
+                <div class="glass-card">
+                    <h2 id="i18n-history-title" style="margin-bottom: 20px;">Transaction History</h2>
+                    <div class="table-container">
+                        <table class="giga-table">
+                            <thead>
+                                <tr>
+                                    <th id="i18n-th-date">DATE</th>
+                                    <th id="i18n-th-type">TYPE</th>
+                                    <th id="i18n-th-amount">AMOUNT</th>
+                                    <th id="i18n-th-status">STATUS</th>
+                                    <th id="i18n-th-desc">DESCRIPTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="view-profile" class="view-section" style="display: none;">
+                <div class="form-card glass-card" style="max-width: 600px;">
+                    <h2 id="i18n-profile-title" style="margin-bottom: 20px;">Profile Settings</h2>
+
+                    <div class="input-group">
+                        <label id="i18n-label-name">Display Name</label>
+                        <input type="text" id="profile-name" class="giga-input">
+                    </div>
+
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label id="i18n-label-lang">Language / 言語 / 语言</label>
+                        <select id="profile-lang" class="giga-input">
+                            <option value="ja">日本語 (Japanese)</option>
+                            <option value="en">English</option>
+                            <option value="zh">中文 (Chinese)</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <button id="btn-save-profile" class="giga-btn btn-primary">SAVE CHANGES</button>
+                        <span id="profile-save-msg" style="margin-left: 15px; font-size: 0.9rem;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Support View -->
+            <div id="view-support" class="view-section" style="display: none;">
+                <!-- FAQ Section -->
+                <div class="glass-card" style="margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 15px;">❓ よくある質問 (FAQ)</h2>
+                    <div class="faq-list" id="client-faq-list">
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">ポイント
+                                (PTS) はどのように購入しますか？</div>
+                            <div class="faq-answer">ダッシュボード上部の「Buy PTS」ボタンから、Stripe決済で購入できます。1 PTS = 50 JPY + 手数料です。
+                            </div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                                タスクのステータスが「pending」のまま変わりません</div>
+                            <div class="faq-answer">
+                                利用可能なワーカーノードがネットワークに接続されていない場合があります。しばらく待っても変わらない場合は、下の診断パネルでネットワーク状態を確認してください。
+                            </div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                                APIキーはどこで取得できますか？</div>
+                            <div class="faq-answer">サイドバーの「API Keys」メニューから新規キーを生成できます。VS Code Extension
+                                や自動化ツールで使用してください。</div>
+                        </div>
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">
+                                ポイント残高が減っているのにタスクが完了していません</div>
+                            <div class="faq-answer">
+                                タスク投入時にポイントがデポジットとして引かれます。タスクが失敗した場合は自動的に返還されます。問題が継続する場合はサポートチケットをお送りください。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostics Panel -->
+                <div class="glass-card" style="margin-bottom: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2>🔍 システム診断</h2>
+                        <button id="btn-run-diagnostics" class="giga-btn btn-outline btn-sm"
+                            style="border-color: var(--accent-client); color: var(--accent-client);">診断実行</button>
+                    </div>
+                    <div id="diagnostics-result" style="display: none;">
+                        <div class="diag-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="diag-card"
+                                style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+                                    アカウント情報</div>
+                                <div id="diag-account"></div>
+                            </div>
+                            <div class="diag-card"
+                                style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+                                    APIキー状態</div>
+                                <div id="diag-apikeys"></div>
+                            </div>
+                            <div class="diag-card"
+                                style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">ジョブ状態
+                                </div>
+                                <div id="diag-jobs"></div>
+                            </div>
+                            <div class="diag-card"
+                                style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 15px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">サーバー情報
+                                </div>
+                                <div id="diag-server"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Form -->
+                <div class="glass-card" style="margin-bottom: 20px;">
+                    <h2 style="margin-bottom: 15px;">✉️ お問い合わせ</h2>
+                    <div class="input-group">
+                        <label>カテゴリ</label>
+                        <select id="ticket-category" class="giga-input">
+                            <option value="billing">課金・ポイント</option>
+                            <option value="task">タスク・ジョブ</option>
+                            <option value="account">アカウント</option>
+                            <option value="api">API・開発</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label>件名</label>
+                        <input type="text" id="ticket-subject" class="giga-input" placeholder="問題の概要を入力してください">
+                    </div>
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label>詳細</label>
+                        <textarea id="ticket-message" class="giga-input" rows="5"
+                            placeholder="問題の詳細をお書きください..."></textarea>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                        <button id="btn-submit-ticket" class="giga-btn btn-primary">送信する</button>
+                        <span id="ticket-msg" style="font-size: 0.9rem;"></span>
+                    </div>
+                </div>
+
+                <!-- Ticket History -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 15px;">📋 お問い合わせ履歴</h2>
+                    <div id="ticket-history-list">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">読み込み中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Buy PTS Modal -->
+<div id="buy-pts-modal" class="auth-overlay" style="display: none;">
+    <div class="auth-box glass-card" style="text-align: left; position: relative;">
+        <button class="modal-close-btn">&times;</button>
+        <h2 id="i18n-buy-title" style="font-family: Orbitron; margin-bottom: 20px; color: var(--accent-client);">Buy
+            PTS</h2>
+        <p id="i18n-buy-desc" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+            1 PTS = 50 JPY + Processing Fee.<br>Enter the amount of points you want to add.
+        </p>
+        <div class="input-group">
+            <label id="i18n-label-amount">Amount (PTS)</label>
+            <input type="number" id="buy-amount-input" class="giga-input" value="10" min="1">
+        </div>
+
+        <div id="payment-element-container" style="display: none; margin-top: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted);">Card
+                Information</label>
+            <div id="card-element"
+                style="padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px;">
+            </div>
+            <div id="card-errors" role="alert" style="color: #ff4d4d; font-size: 0.85rem; margin-top: 8px;"></div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 10px;">
+            <button id="modal-cancel-btn" class="giga-btn btn-outline" style="flex: 1;">CANCEL</button>
+            <button id="modal-pay-btn" class="giga-btn btn-primary" style="flex: 2;">PROCEED TO PAYMENT</button>
+        </div>
+    </div>
+</div>
+
+<!-- Inject server variables for frontend scripts to use without fetching -->
+<script>
+    window.GIGA_STATELESS_HASH = "<%= user.hash %>";
+</script>
+<script src="/client-portal/js/dashboard.js"></script>
+</body>
+
+</html>

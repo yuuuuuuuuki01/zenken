@@ -1,0 +1,72 @@
+[
+  {
+    "taskId": "task-e2ee-1772199230242",
+    "timestamp": 1772199230758,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772199260974",
+    "timestamp": 1772199261489,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772199385350",
+    "timestamp": 1772199385880,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772199557946",
+    "timestamp": 1772199558454,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772199812911",
+    "timestamp": 1772199813425,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772199992259",
+    "timestamp": 1772199992769,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772200114062",
+    "timestamp": 1772200114584,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772201146736",
+    "timestamp": 1772201147304,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772201412883",
+    "timestamp": 1772201413408,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  },
+  {
+    "taskId": "task-e2ee-1772202255888",
+    "timestamp": 1772202256402,
+    "type": "income",
+    "amount": 10,
+    "description": "Task completion reward"
+  }
+]

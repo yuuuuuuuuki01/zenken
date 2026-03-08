@@ -1,0 +1,115 @@
+{
+    "hosting": {
+        "public": "server/dist/public",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "headers": [
+            {
+                "source": "**/*.@(js|css|html)",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "max-age=0, no-cache, no-store, must-revalidate"
+                    }
+                ]
+            },
+            {
+                "source": "/downloads/**",
+                "headers": [
+                    {
+                        "key": "Content-Disposition",
+                        "value": "attachment"
+                    }
+                ]
+            }
+        ],
+        "rewrites": [
+            {
+                "source": "/auth/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/v1/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/admin/api/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/api/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/health",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/client-portal/u/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/worker-portal/u/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/downloads/**",
+                "run": {
+                    "serviceId": "api",
+                    "region": "us-central1"
+                }
+            },
+            {
+                "source": "/admin/**",
+                "destination": "/admin/index.html"
+            },
+            {
+                "source": "/client-portal/**",
+                "destination": "/client-portal/index.html"
+            },
+            {
+                "source": "/worker-portal/**",
+                "destination": "/worker-portal/index.html"
+            },
+            {
+                "source": "/worker/**",
+                "destination": "/worker/index.html"
+            }
+        ]
+    },
+    "functions": {
+        "source": "server",
+        "codebase": "default",
+        "ignore": [
+            "node_modules",
+            ".git",
+            "firebase-debug.log",
+            "firestore-debug.log",
+            "ui-debug.log"
+        ]
+    }
+}

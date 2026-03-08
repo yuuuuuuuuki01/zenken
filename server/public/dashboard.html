@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GigaCompute | Dashboard Preview</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@700&family=Roboto+Mono&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-container {
+            padding-top: 100px;
+            padding-bottom: 50px;
+            min-height: 100vh;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .db-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .db-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 30px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, rgba(0, 243, 255, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+        }
+
+        .b-label {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .b-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .b-sub {
+            color: var(--primary);
+            font-size: 1rem;
+            margin-top: 5px;
+        }
+
+        .node-list,
+        .job-list,
+        .key-list {
+            margin-top: 20px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-dim);
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 15px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(0, 255, 127, 0.1);
+            color: #00ff7f;
+        }
+
+        .badge-warning {
+            background: rgba(255, 165, 0, 0.1);
+            color: #ffa500;
+        }
+
+        .badge-error {
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .download-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container nav-container">
+            <div class="logo">GigaCompute</div>
+            <nav><a href="index.html">ホーム</a><a href="javascript:void(0)" id="logout-btn">ログアウト</a></nav>
+        </div>
+    </header>
+    <div class="container dashboard-container">
+        <div class="tabs">
+            <div class="tab active" data-tab="worker">Worker Dashboard</div>
+            <div class="tab" data-tab="client">Client Console</div>
+        </div>
+
+        <div id="worker" class="tab-content active">
+            <div class="db-grid">
+                <div class="db-main">
+                    <div class="db-card balance-card">
+                        <span class="b-label">WITHDRAWABLE BALANCE</span>
+                        <div class="b-value" id="user-yen">¥ ---</div>
+                        <div class="b-sub" id="user-pts">--- PTS</div>
+                        <div style="margin-top: 30px;">
+                            <button class="btn btn-primary">Stripeで出金</button>
+                            <button class="btn btn-outline">PTSを購入</button>
+                        </div>
+                    </div>
+                    <div class="db-card">
+                        <h3>Performance History</h3>
+                        <canvas id="performanceChart" height="150"></canvas>
+                    </div>
+                </div>
+                <div class="db-side">
+                    <div class="db-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>Active Nodes</h3>
+                            <button class="btn btn-outline btn-sm">+連携</button>
+                        </div>
+                        <div class="node-list" id="node-list">
+                            <p style="color:var(--text-dim); font-size: 0.8rem;">データを読み込み中...</p>
+                        </div>
+                    </div>
+                    <div class="db-card">
+                        <h3>Agent Download</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 15px;">PCに常駐して計算力を提供します。</p>
+                        <div class="download-box">
+                            <a href="/zenken-agent.zip" class="btn btn-primary btn-sm"
+                                style="width: 100%; margin-bottom: 10px;">Windows (x64)</a>
+                            <a href="/zenken-agent-mac.zip" class="btn btn-outline btn-sm" style="width: 100%;">macOS
+                                (Apple
+                                Silicon)</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="client" class="tab-content">
+            <div class="db-grid">
+                <div class="db-main">
+                    <div class="db-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>Recent Jobs</h3>
+                            <button class="btn btn-primary btn-sm"
+                                onclick="location.href='/v1/dev/mock-job'">+新ジョブ作成</button>
+                        </div>
+                        <table id="job-table">
+                            <thead>
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Cost</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="job-list">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--text-dim);">読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="db-side">
+                    <div class="db-card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>API Keys</h3>
+                            <button class="btn btn-outline btn-sm" id="create-key-btn">新規作成</button>
+                        </div>
+                        <div id="key-list">
+                            <p style="color:var(--text-dim); font-size: 0.8rem;">読み込み中...</p>
+                        </div>
+                    </div>
+                    <div class="db-card">
+                        <h3>Usage Stats</h3>
+                        <div id="client-stats" style="font-size: 0.9rem;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span>Total Jobs:</span><span id="stat-total-jobs">--</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                                <span>Active:</span><span id="stat-active-jobs">--</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between;">
+                                <span>Total Spent:</span><span id="stat-spent" style="color:var(--primary);">--
+                                    PTS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = (location.protocol === 'file:') ? 'https://localhost:8081' : `https://${location.hostname}:8081`;
+        const token = localStorage.getItem('giga_token');
+
+        if (!token) {
+            location.href = 'index.html';
+        }
+
+        // Tab Switching Logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+                if (tab.dataset.tab === 'client') loadClientDashboard();
+            });
+        });
+
+        async function loadWorkerDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/v1/worker/dashboard/data`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Auth failed');
+                const user = await response.json();
+
+                document.getElementById('user-pts').textContent = `${(user.points || 0).toLocaleString()} PTS`;
+                document.getElementById('user-yen').textContent = `¥ ${(user.points * 25).toLocaleString()}`;
+
+                const nodeContainer = document.getElementById('node-list');
+                if (user.nodes && user.nodes.length > 0) {
+                    nodeContainer.innerHTML = user.nodes.map(n => `
+                        <div class="list-item">
+                            <div>
+                                <h4 style="color:var(--primary); font-family:monospace;">${n.id.substring(0, 12)}</h4>
+                                <span class="status-badge ${n.status === 'busy' ? 'badge-warning' : 'badge-success'}">${n.status}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.7rem; color: var(--text-dim);">TRUST</div>
+                                <div style="font-weight: bold;">${n.trustScore}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    nodeContainer.innerHTML = '<p style="color:var(--text-dim); font-size: 0.8rem;">接続ノードなし</p>';
+                }
+                initChart();
+            } catch (err) { handleAuthError(err); }
+        }
+
+        async function loadClientDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/v1/client/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                // Stats
+                document.getElementById('stat-total-jobs').textContent = data.stats.totalJobs;
+                document.getElementById('stat-active-jobs').textContent = data.stats.activeJobs;
+                document.getElementById('stat-spent').textContent = `${data.stats.totalSpent.toLocaleString()} PTS`;
+
+                // Jobs Table
+                const jobList = document.getElementById('job-list');
+                if (data.recentJobs && data.recentJobs.length > 0) {
+                    jobList.innerHTML = data.recentJobs.map(j => `
+                        <tr>
+                            <td style="font-family:monospace; font-size:0.8rem;">${j.id.substring(0, 8)}</td>
+                            <td>${j.type}</td>
+                            <td><span class="status-badge ${j.status === 'completed' ? 'badge-success' : 'badge-warning'}">${j.status}</span></td>
+                            <td>${j.cost}</td>
+                            <td>${new Date(j.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    jobList.innerHTML = '<tr><td colspan="5" style="text-align:center;">ジョブ履歴なし</td></tr>';
+                }
+
+                loadApiKeys();
+            } catch (err) { handleAuthError(err); }
+        }
+
+        async function loadApiKeys() {
+            const response = await fetch(`${API_BASE}/v1/client/apikeys`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const { keys } = await response.json();
+            const keyList = document.getElementById('key-list');
+            if (keys && keys.length > 0) {
+                keyList.innerHTML = keys.map(k => `
+                    <div class="list-item">
+                        <div>
+                            <div style="font-weight:bold; font-size:0.9rem;">${k.name}</div>
+                            <div style="font-family:monospace; font-size:0.75rem; color:var(--text-dim);">${k.key.substring(0, 12)}...</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="deleteKey('${k.key}')">削除</button>
+                    </div>
+                `).join('');
+            } else { keyList.innerHTML = '<p style="font-size:0.8rem;">キー未生成</p>'; }
+        }
+
+        async function deleteKey(key) {
+            if (!confirm('キーを無効化しますか？')) return;
+            await fetch(`${API_BASE}/v1/client/apikeys/${key}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            loadApiKeys();
+        }
+
+        document.getElementById('create-key-btn').addEventListener('click', async () => {
+            const name = prompt('キーの名前を入力してください', 'New Key');
+            if (!name) return;
+            await fetch(`${API_BASE}/v1/client/apikeys`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            loadApiKeys();
+        });
+
+        function initChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+                    datasets: [{
+                        label: 'Contribution (TFLOPS)',
+                        data: [65, 59, 80, 81, 56, 75],
+                        borderColor: '#00f3ff',
+                        backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function handleAuthError(err) {
+            console.error(err);
+            localStorage.removeItem('giga_token');
+            location.href = 'index.html';
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('giga_token');
+            location.href = 'index.html';
+        });
+
+        loadWorkerDashboard();
+    </script>
+
+
+</body>
+
+</html>

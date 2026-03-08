@@ -1,0 +1,5 @@
+ZEN KEN Agent v1.1.2
+Last Updated: 2026-03-02
+Architecture: Node.js Raw Client
+Security: SSL/mTLS Enabled
+Icon: White BG Premium

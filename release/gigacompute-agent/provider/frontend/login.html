@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEN KEN Cockpit | Setup Node</title>
+    <link rel="icon" type="image/png" href="/icon.png">
+    <link rel="stylesheet" href="/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        .giga-input {
+            width: 100%;
+            border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            color: #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .giga-btn {
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 15px var(--accent-primary);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glow-bg"></div>
+
+    <div class="login-wrapper">
+        <div class="modal-content glass" style="max-width: 450px; width: 100%;">
+            <div id="wizard-main" class="wizard-step active">
+                <h2 style="font-family: Orbitron; color: var(--accent-primary); margin-bottom: 2rem; line-height: 1.2;">
+                    ZEN <span style="color: #fff;">KEN</span><br><small
+                        style="font-size: 0.6em; opacity: 0.8; letter-spacing: 2px;">Setup Your Node</small>
+                </h2>
+
+                <div class="onboarding-summary glass"
+                    style="background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2); padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <p
+                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">
+                        Recommended Settings for your PC</p>
+                    <div style="display: flex; justify-content: space-around; align-items: center;">
+                        <div style="text-align: center; flex: 1;">
+                            <div id="w-cpu-val" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">4 Cores
+                            </div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">CPU Allocation
+                            </div>
+                        </div>
+                        <div
+                            style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; flex: 1;">
+                            <div id="w-mem-val" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">8 GB
+                            </div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">Memory Allocation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pair-section">
+                    <!-- Tabs -->
+                    <div
+                        style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <button id="tab-login" onclick="switchLoginTab('login')"
+                            style="background: none; border: none; color: var(--accent-primary); font-weight: 700; cursor: pointer; font-size: 0.95rem; padding: 5px 10px; border-bottom: 2px solid var(--accent-primary);">LOGIN</button>
+                        <button id="tab-register" onclick="switchLoginTab('register')"
+                            style="background: none; border: none; color: var(--text-muted); font-weight: 700; cursor: pointer; font-size: 0.95rem; padding: 5px 10px; border-bottom: 2px solid transparent;">NEW
+                            ACCOUNT</button>
+                    </div>
+
+                    <div id="auth-msg"
+                        style="color: #ff4d4d; font-size: 0.8rem; margin-bottom: 15px; min-height: 1.2em; text-align: center; font-weight: bold;">
+                    </div>
+
+                    <!-- LOGIN TAB FORM -->
+                    <form id="form-login-container" action="https://api-rlhftuaqaa-uc.a.run.app/auth/agent-login-simple"
+                        method="POST">
+                        <input type="email" name="email" placeholder="Email" class="giga-input" required>
+                        <input type="password" name="password" placeholder="Password" class="giga-input"
+                            style="margin-top: 15px;" required>
+                        <button type="submit" class="giga-btn btn-primary" style="margin-top: 25px; width: 100%;">LOGIN
+                            / PAIR DEVICE</button>
+                    </form>
+
+                    <!-- NEW ACCOUNT TAB FORM -->
+                    <form id="form-register-container"
+                        action="https://api-rlhftuaqaa-uc.a.run.app/auth/agent-register-simple" method="POST"
+                        style="display: none;">
+                        <input type="text" name="name" placeholder="Display Name" class="giga-input" required>
+                        <input type="email" name="email" placeholder="Email" class="giga-input"
+                            style="margin-top: 15px;" required>
+                        <input type="password" name="password" placeholder="Password (8+ chars)" class="giga-input"
+                            style="margin-top: 15px;" required>
+
+                        <div style="margin-top: 15px;">
+                            <label
+                                style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; font-size: 0.85rem; color: var(--text-muted);">
+                                <input type="checkbox" name="terms" style="margin-top: 3px;" required>
+                                <span>
+                                    <a href="https://gigacompute-fleet.web.app/legal/terms.html" target="_blank"
+                                        style="color: var(--accent-primary); text-decoration: none;">利用規約</a>および
+                                    <a href="https://gigacompute-fleet.web.app/legal/privacy.html" target="_blank"
+                                        style="color: var(--accent-primary); text-decoration: none;">プライバシーポリシー</a>に同意します
+                                </span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="giga-btn btn-primary" style="margin-top: 25px; width: 100%;">CREATE
+                            ACCOUNT & PAIR</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden sliders for initial config variables used by wizard -> loginAndPair -->
+    <div style="display: none;">
+        <input type="range" id="w-range-cpu" value="4">
+        <input type="range" id="w-range-mem" value="8">
+        <input type="range" id="w-range-disk" value="50">
+    </div>
+
+    <script>
+        // Handle tab switching
+        function switchLoginTab(tab) {
+            const loginForm = document.getElementById('form-login-container');
+            const regForm = document.getElementById('form-register-container');
+            const tabL = document.getElementById('tab-login');
+            const tabR = document.getElementById('tab-register');
+
+            if (tab === 'login') {
+                loginForm.style.display = 'block';
+                regForm.style.display = 'none';
+                tabL.style.borderBottomColor = 'var(--accent-primary)';
+                tabL.style.color = 'var(--accent-primary)';
+                tabR.style.borderBottomColor = 'transparent';
+                tabR.style.color = 'var(--text-muted)';
+            } else {
+                loginForm.style.display = 'none';
+                regForm.style.display = 'block';
+                tabR.style.borderBottomColor = 'var(--accent-primary)';
+                tabR.style.color = 'var(--accent-primary)';
+                tabL.style.borderBottomColor = 'transparent';
+                tabL.style.color = 'var(--text-muted)';
+            }
+        }
+
+        // Parse URL for errors
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const msgEl = document.getElementById('auth-msg');
+        if (error === 'invalid_credentials') msgEl.textContent = 'メールアドレスまたはパスワードが正しくありません。';
+        else if (error === 'email_in_use') msgEl.textContent = 'このメールアドレスは既に使用されています。';
+        else if (error === 'server_error') msgEl.textContent = 'サーバーエラーが発生しました。詳細はシステムログを確認してください。';
+
+        // Initial tab state based on URL error or default to login
+        const initialTab = urlParams.get('tab') || 'login';
+        switchLoginTab(initialTab);
+    </script>
+
+    <script src="/js/ui.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>

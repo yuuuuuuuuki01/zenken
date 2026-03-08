@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEN KEN Cockpit | Agent GUI</title>
+    <link rel="icon" type="image/png" href="/icon.png">
+    <link rel="stylesheet" href="/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <div id="email-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>SYSTEM AUTHENTICATION</h3>
+            </div>
+            <input type="email" id="modal-email-input" placeholder="Enter registration email">
+            <button id="btn-modal-confirm" class="btn-confirm">AUTHORIZE</button>
+        </div>
+    </div>
+
+    <!-- [Onboarding Wizard v2.0] -->
+    <div id="wizard-modal" class="modal wizard">
+        <div class="modal-content glass" style="max-width: 450px;">
+            <div id="wizard-main" class="wizard-step active">
+                <h2 style="font-family: Orbitron; color: var(--accent-primary); margin-bottom: 2rem; line-height: 1.2;">
+                    ZEN <span style="color: #fff;">KEN</span><br><small
+                        style="font-size: 0.6em; opacity: 0.8; letter-spacing: 2px;">Setup Your
+                        Node</small></h2>
+
+                <div class="onboarding-summary glass"
+                    style="background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.2); padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <p
+                        style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; text-align: center;">
+                        Recommended Settings for your PC</p>
+                    <div style="display: flex; justify-content: space-around; align-items: center;">
+                        <div style="text-align: center; flex: 1;">
+                            <div id="wiz-cpu-rec" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">--
+                                Cores</div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">CPU Allocation
+                            </div>
+                        </div>
+                        <div
+                            style="text-align: center; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 10px; flex: 1;">
+                            <div id="wiz-mem-rec" style="font-family: Orbitron; font-size: 1.1rem; color: #fff;">-- GB
+                            </div>
+                            <div style="font-size: 0.55rem; opacity: 0.6; text-transform: uppercase;">Memory Allocation
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="pair-section">
+                    <p
+                        style="font-size: 0.8rem; line-height: 1.5; margin-bottom: 1.2rem; color: var(--text-secondary);">
+                        Webポータルと同じメールアドレスとパスワードでログインしてください。</p>
+
+                    <input type="email" id="wiz-email-input" placeholder="メールアドレス"
+                        style="margin-bottom: 1rem; width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; border-radius: 4px;">
+                    <input type="password" id="wiz-password-input" placeholder="パスワード"
+                        style="margin-bottom: 1.5rem; width: 100%; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.5); padding: 10px; color: #fff; border-radius: 4px;">
+
+                    <div id="wizard-pair-status"
+                        style="font-size: 0.75rem; margin-bottom: 1rem; height: 1.2em; text-align: center; font-weight: bold;">
+                    </div>
+
+                    <button id="btn-login-pair" onclick="wizard.loginAndPair()" class="btn-confirm"
+                        style="margin-bottom: 1rem; width: 100%;">ログインして開始</button>
+
+                    <div
+                        style="margin: 1rem 0; text-align: center; border-top: 1px solid var(--glass-border); padding-top: 1rem;">
+                        <p style="font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 0.8rem;">
+                            アカウントをお持ちでない場合は</p>
+                        <button onclick="wizard.openWebPortal()" class="btn-secondary"
+                            style="font-size: 0.7rem; padding: 0.5rem 1rem; width: 100%;">🌐 新規登録 / ダウンロード</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step Success -->
+            <div id="wizard-step-success" class="wizard-step" style="text-align: center;">
+                <h2 style="font-family: Orbitron; color: var(--accent-success); letter-spacing: 2px;">WELCOME TO ZEN KEN
+                </h2>
+                <div style="font-size: 3.5rem; margin: 2rem 0;">🌌</div>
+                <p style="margin-bottom: 2rem; font-size: 0.9rem; line-height: 1.6;">セットアップが完了しました。<br>あなたの PC
+                    は計算リソースの提供を通じて<br><span
+                        style="color: var(--accent-success); font-weight: bold;">収益化（日本円）</span>を開始します。</p>
+                <button onclick="wizard.close()" class="btn-confirm" style="width: 100%;">コクピットを表示</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [Update Notification Modal] -->
+    <div id="update-modal" class="modal">
+        <div class="modal-content glass"
+            style="max-width: 400px; text-align: center; border: 1px solid var(--accent-primary);">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🚀</div>
+            <h3 style="font-family: Orbitron; color: var(--accent-primary); margin-bottom: 1rem;">NEW VERSION AVAILABLE!
+            </h3>
+            <p id="update-version-label"
+                style="font-family: Orbitron; font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem;">vX.X.X</p>
+            <p id="update-notes"
+                style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;"></p>
+
+            <div
+                style="background: rgba(0,229,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: left;">
+                <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">
+                    Update Mode: Automatic</p>
+                <p style="font-size: 0.7rem; color: var(--text-secondary);">
+                    「今すぐ更新」をクリックすると、エージェントが自動で最新版をダウンロードし、ファイルを適用します。完了後、エージェントは自動的に再起動します。</p>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button onclick="document.getElementById('update-modal').style.display='none'" class="btn-secondary"
+                    style="flex: 1;">後で</button>
+                <button id="btn-update-download" class="btn-confirm" style="flex: 1.5;">今すぐ更新</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings modal removed to settings.html -->
+
+    <div class="glow-bg"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <h1>ZEN<span class="accent">KEN</span> <small>ワーカー・コクピット</small></h1>
+                <div class="safety-badge">
+                    <span class="icon">🛡️</span> Isolate & Secure
+                </div>
+                <button id="btn-settings" class="btn-secondary" onclick="window.location.href='/settings.html'"
+                    style="margin-left: 20px; padding: 5px 10px; font-size: 0.85rem;">⚙️ 設定</button>
+            </div>
+            <div id="connection-status" class="status-badge disconnected">オフライン</div>
+        </header>
+
+        <main>
+            <!-- [Real-time Ticker Section] -->
+            <div class="ticker-container" id="drop-zone">
+                <div class="ticker-label">リアルタイム総売上 (Gross Revenue)</div>
+                <div class="ticker-value">
+                    <span class="ticker-currency">$</span>
+                    <span id="ticker-amount">0.000000</span>
+                </div>
+
+                <div
+                    style="display: flex; justify-content: space-around; width: 100%; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-secondary);">推計コスト (API+電気代)</div>
+                        <div style="font-size: 1.2rem; color: var(--accent-secondary); font-family: Orbitron;">$<span
+                                id="roi-cost">0.0000</span></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--accent-success);">純利益 (Net Profit)</div>
+                        <div
+                            style="font-size: 1.5rem; color: var(--accent-success); font-family: Orbitron; font-weight: bold;">
+                            $<span id="roi-net">0.000000</span></div>
+                        <div class="ticker-growth" id="ticker-rate" style="margin-top: 5px; font-size: 0.8rem;">+0.000 /
+                            秒</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.7rem; color: var(--text-secondary);">月間着地予想</div>
+                        <div style="font-size: 1.2rem; color: var(--text-primary); font-family: Orbitron;">$<span
+                                id="roi-monthly">0.00</span></div>
+                    </div>
+                </div>
+
+                <!-- Overlay for Drag & Drop -->
+                <div id="drop-overlay"
+                    style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,229,255,0.1); backdrop-filter:blur(5px); align-items:center; justify-content:center; flex-direction:column;">
+                    <span style="font-size:2rem;">📥</span>
+                    <p style="font-family:Orbitron; letter-spacing:2px; margin-top:1rem;">インバイトパッケージをドロップして接続</p>
+                </div>
+            </div>
+
+            <section class="performance-grid">
+                <div class="stat-card performance">
+                    <div class="label">計算パワー出力</div>
+                    <div class="value"><span id="stat-perf">0</span> <small
+                            style="font-size:0.5em; opacity:0.5;">OPS</small></div>
+                    <div class="sub">⚡ システム・ベンチマーク</div>
+                </div>
+                <div class="stat-card trust">
+                    <div class="label">信頼ランク <span id="mentor-badge-container"></span></div>
+                    <div class="value"><span id="stat-trust">0.00</span></div>
+                    <div class="trust-progress-container">
+                        <div id="trust-progress-bar" class="trust-progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="sub" id="stat-trust-sub">🛡️ ネットワーク信頼性</div>
+                </div>
+                <div class="stat-card liveness">
+                    <div class="label">継続稼働時間</div>
+                    <div class="value" id="stat-liveness">00:00:00</div>
+                    <div class="sub">⏱️ セッション継続</div>
+                </div>
+            </section>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div class="main-column">
+                    <section class="activity-section glass">
+                        <h2>システム・アクティビティ</h2>
+                        <div id="current-activity" class="current-activity-box">
+                            <div class="empty-msg">待機中...</div>
+                        </div>
+                    </section>
+
+                    <section class="history-section glass">
+                        <h2>タスク履歴ログ</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>ステータス</th>
+                                        <th>獲得報酬</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <div class="side-column">
+                    <section class="wallet-section glass" style="padding: 1.5rem;">
+                        <h2>ウォレット</h2>
+                        <div class="wallet-stats" style="flex-direction: column; gap: 1rem;">
+                            <div class="wallet-stat">
+                                <span class="label">総収益額</span>
+                                <div class="value income" id="wallet-income">0.00</div>
+                            </div>
+                            <div class="wallet-stat">
+                                <span class="label">リソース利用コスト</span>
+                                <div class="value expense" id="wallet-expense">0.00</div>
+                            </div>
+                        </div>
+                        <button onclick="app.withdraw()" class="btn-confirm"
+                            style="margin-top: 1rem; padding: 0.6rem; font-size: 0.7rem;">報酬を引き出す</button>
+                        <button onclick="app.openWebDashboard()" class="btn-secondary"
+                            style="margin-top: 0.5rem; padding: 0.6rem; font-size: 0.7rem; width: 100%; border: 1px solid var(--accent-secondary); background: transparent; color: var(--text-main); cursor: pointer; border-radius: 4px; transition: all 0.3s;">🌐
+                            Web管理画面を開く</button>
+                    </section>
+
+                    <section class="staging-section glass" style="padding: 1.5rem;">
+                        <h2>ステージング</h2>
+                        <div id="staging-list" class="empty-msg">保留中の結果はありません。</div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="agent-id">エージェント ID: <span id="display-id">---</span></div>
+            <div class="version" id="footer-version">AGENT COCKPIT // 信頼プロトコル有効</div>
+        </footer>
+    </div>
+
+    <script src="/js/ticker.js"></script>
+    <script src="/js/ui.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+
+</html>
