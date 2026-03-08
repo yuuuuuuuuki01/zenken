@@ -2295,41 +2295,33 @@ const startStandaloneServer = () => {
                     }
                 }
 
-                // Broadcast for real-time dashboard tracking
-                const tflops = calculateTotalTflops();
-                const state = {
-                    type: 'system_state',
-                    payload: {
-                        nodes: Array.from(nodes.values()).map(n => n.info),
-                        activeTasks: Array.from(activeTasks.values()),
-                        totalTflops: tflops
-                    }
-                };
-                nodes.forEach(n => n.ws.send(JSON.stringify(state)));
+                // Broadcast
+                broadcastSystemState();
 
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error('[WS Message Error]', e); }
         });
+
         ws.on('close', () => {
             if (nodeId) {
+                console.log(`[Network] Node ${nodeId} disconnected.`);
                 nodes.delete(nodeId);
                 firestoreService.removeNode(nodeId);
             }
-            // Broadcast update
-            const tflops = calculateTotalTflops();
-            const state = { type: 'system_state', payload: { nodes: Array.from(nodes.values()).map(n => n.info), activeTasks: Array.from(activeTasks.values()), totalTflops: tflops } };
-            nodes.forEach(n => n.ws.send(JSON.stringify(state)));
+            broadcastSystemState();
+        });
+
+        ws.on('error', (err: any) => {
+            console.error('[WS Socket Error]', err);
         });
     });
 
     server.listen(port, "0.0.0.0", async () => {
         await initDemoData();
-        logger.info(`[System] ZenKen Secure Server running on: ${port}`);
+        logger.info(`[System] ZenKen Secure Server listening on: 0.0.0.0:${port}`);
 
-        // P3: タイムアウトした処理中タスクを定期的に再キューする（15秒ごと）
         setInterval(() => {
             globalQueue.checkTimeouts();
         }, 15000);
-        console.log('[Queue] Timeout watchdog started (interval: 15s)');
     });
 };
 
@@ -2407,10 +2399,11 @@ async function initDemoData() {
 // 起動方式の決定
 // Cloud Run (Direct) またはローカル実行時は standalone server を起動。
 // Firebase Functions (Functions Framework) 経由の場合は framework が listen を担当するため、ここでは避ける。
+// ただし、WebSocket を確実に動作させるためには、Framework 経由ではなく独自の listen が推奨される。
 const isFunctionsFramework = !!process.env.FUNCTION_TARGET;
 
-if (!isFunctionsFramework && require.main === module) {
-    // ローカル、または Cloud Run (Direct) 環境での直接実行
+if (!isFunctionsFramework || process.env.K_SERVICE) {
+    // ローカル、または Cloud Run (Direct) 環境での直接実行を優先
     startStandaloneServer();
 } else {
     process.stderr.write(`[System] Loading as imported module (K_SERVICE: ${process.env.K_SERVICE || 'none'}, FUNCTION_TARGET: ${process.env.FUNCTION_TARGET || 'none'})\n`);
@@ -2427,7 +2420,7 @@ export const api = onRequest(
         maxInstances: 10,
         invoker: 'public',
         memory: '512MiB',
-        timeoutSeconds: 120
+        timeoutSeconds: 300 // Increase for long-running connections
     },
     app
 );
