@@ -620,8 +620,11 @@ app.get('/downloads/:filename', async (req, res) => {
     const filename = req.params.filename;
     const localPath = getPublicPath(path.join('downloads', filename));
 
+    console.log(`[Download] Request for ${filename}. LocalPath: ${localPath}`);
+
     // 1. Try local disk (for dev or recently uploaded on this instance)
     if (fs.existsSync(localPath)) {
+        console.log(`[Download] Serving from local disk: ${filename}`);
         res.type(filename);
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         return res.sendFile(localPath);
@@ -629,21 +632,30 @@ app.get('/downloads/:filename', async (req, res) => {
 
     // 2. Fallback to Firebase Storage (Persistent source of truth)
     try {
-        const bucket = getStorage().bucket('gigacompute-downloads');
+        const bucketName = 'gigacompute-fleet.firebasestorage.app'; // Correct default for Firebase Projects
+        console.log(`[Download] Falling back to Storage Bucket: ${bucketName} for ${filename}`);
+
+        const bucket = getStorage().bucket(bucketName);
         const file = bucket.file(`downloads/${filename}`);
         const [exists] = await file.exists();
 
         if (exists) {
+            console.log(`[Download] Found in Storage: ${filename}. Piping to response.`);
             res.type(filename);
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
             const readStream = file.createReadStream();
+            readStream.on('error', (err) => {
+                console.error('[Download] Stream error:', err);
+                if (!res.headersSent) res.status(500).send('Stream error');
+            });
             readStream.pipe(res);
         } else {
+            console.warn(`[Download] Not found in Local or Storage: ${filename}`);
             res.status(404).send('File not found');
         }
-    } catch (e) {
-        console.error('[Storage] Download error:', e);
-        res.status(500).send('Internal Server Error');
+    } catch (e: any) {
+        console.error('[Storage] Download error:', e?.stack || e);
+        if (!res.headersSent) res.status(500).send('Internal Server Error');
     }
 });
 
@@ -1077,29 +1089,30 @@ clientRouter.get('/dashboard', async (req: any, res, next) => {
         const user = await db.user.findUnique({ where: { id: req.userId } });
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        const recentJobs = await db.clientJob.findMany({
-            where: { userId: req.userId },
-            // orderBy: { createdAt: 'desc' }, // Removed to avoid index requirement
-            take: 50
-        });
-        recentJobs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-        const activeJobs = await db.clientJob.count({
-            where: { userId: req.userId, status: { in: ['pending', 'processing'] } }
-        });
-        const totalJobs = await db.clientJob.count({ where: { userId: req.userId } });
-
-        // aggregate spent PTS
-        const spentObj = await db.clientJob.aggregate({
-            _sum: { cost: true },
+        // 1. Fetch all jobs for this user to calculate and sort in memory
+        // This avoids Firestore composite index requirements for where + orderBy
+        const allJobs = await db.clientJob.findMany({
             where: { userId: req.userId }
         });
-        const totalSpent = spentObj._sum.cost || 0;
 
-        // Fetch the most recent active API key for magic link
+        // 2. Sort in memory (Server-side)
+        allJobs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        // 3. Calculate statistics in memory (Server-side)
+        // Replacing db.clientJob.aggregate which is not supported/failing in Firestore adapter
+        const stats = allJobs.reduce((acc, job: any) => {
+            acc.totalJobs++;
+            if (job.status === 'pending' || job.status === 'processing') {
+                acc.activeJobs++;
+            }
+            acc.totalSpent += (job.cost || 0);
+            return acc;
+        }, { totalJobs: 0, activeJobs: 0, totalSpent: 0 });
+
+        // 4. Fetch the most recent active API key
         const latestKey = await db.clientApiKey.findFirst({
-            where: { userId: req.userId, isActive: true },
-            orderBy: { createdAt: 'desc' }
+            where: { userId: req.userId, isActive: true }
+            // No orderBy here to avoid index requirements
         });
 
         res.json({
@@ -1108,13 +1121,16 @@ clientRouter.get('/dashboard', async (req: any, res, next) => {
             name: user.name,
             accessKey: latestKey ? latestKey.key : null,
             stats: {
-                totalJobs,
-                activeJobs,
-                totalSpent: totalSpent
+                totalJobs: stats.totalJobs,
+                activeJobs: stats.activeJobs,
+                totalSpent: stats.totalSpent
             },
-            recentJobs
+            recentJobs: allJobs.slice(0, 50) // Take top 50 in memory
         });
-    } catch (e) { next(e); }
+    } catch (e: any) {
+        console.error('[Dashboard Error]', e?.stack || e);
+        next(e);
+    }
 });
 
 clientRouter.put('/profile', async (req: any, res, next) => {
