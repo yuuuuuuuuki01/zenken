@@ -9,5 +9,8 @@
     "adm-zip": "^0.5.16",
     "axios": "^1.13.6",
     "jimp": "^0.16.13"
+  },
+  "scripts": {
+    "recovery:smoke": "node scripts/recovery_smoke_check.mjs"
   }
 }

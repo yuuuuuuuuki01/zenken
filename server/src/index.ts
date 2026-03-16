@@ -271,6 +271,19 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime() });
 });
 
+// Recovery-oriented health summary for local restart diagnostics
+app.get('/health/recovery', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        uptime: process.uptime(),
+        version: currentApprovedVersion.version,
+        connectedNodes: nodes.size,
+        activeTasks: activeTasks.size,
+        pendingVotes: pendingVotes.size,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // --- SCHEMAS & HELPERS ---
 const RegisterSchema = z.object({ email: z.string().email(), password: z.string().min(8), name: z.string().min(2) });
 const LoginSchema = z.object({ email: z.string().email(), password: z.string() });

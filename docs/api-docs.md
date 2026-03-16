@@ -1,5 +1,7 @@
 # ZEN KEN Developer API Documentation (Draft v0.1)
 
+> 復旧手順・起動順はまず [`RUNBOOK.md`](../RUNBOOK.md) を参照してください。
+
 ZEN KEN ネットワークを外部アプリケーションから利用するための API 仕様書です。
 
 ## 1. Authentication
