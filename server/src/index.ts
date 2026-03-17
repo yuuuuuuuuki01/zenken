@@ -271,6 +271,19 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', uptime: process.uptime() });
 });
 
+// Recovery-oriented health summary for local restart diagnostics
+app.get('/health/recovery', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        uptime: process.uptime(),
+        version: currentApprovedVersion.version,
+        connectedNodes: nodes.size,
+        activeTasks: activeTasks.size,
+        pendingVotes: pendingVotes.size,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // --- SCHEMAS & HELPERS ---
 const RegisterSchema = z.object({ email: z.string().email(), password: z.string().min(8), name: z.string().min(2) });
 const LoginSchema = z.object({ email: z.string().email(), password: z.string() });
@@ -2163,8 +2176,24 @@ const startStandaloneServer = () => {
                 const message = JSON.parse(data.toString());
                 console.log(`[Server] Received message type: ${message.type} from ${nodeId || 'new connection'}`);
                 if (message.type === 'register') {
-                    nodeId = message.payload.id;
-                    const nodeInfo = { ...message.payload, status: 'idle' };
+                    const payload = message.payload || {};
+                    if (!payload.id || typeof payload.id !== 'string') {
+                        ws.send(JSON.stringify({
+                            type: 'registration_result',
+                            payload: { success: false, error: 'Invalid registration payload: missing id' }
+                        }));
+                        return;
+                    }
+                    if (!payload.publicKey || typeof payload.publicKey !== 'string') {
+                        ws.send(JSON.stringify({
+                            type: 'registration_result',
+                            payload: { success: false, error: 'Invalid registration payload: missing publicKey' }
+                        }));
+                        return;
+                    }
+
+                    nodeId = payload.id;
+                    const nodeInfo = { ...payload, status: 'idle' };
                     nodes.set(nodeId!, { ws, info: nodeInfo });
                     firestoreService.updateNode(nodeId!, nodeInfo);
                     bqLog.nodeConnected(nodeId!, nodeInfo.trustScore || 50);
