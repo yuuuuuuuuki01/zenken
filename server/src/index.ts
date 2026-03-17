@@ -2176,8 +2176,24 @@ const startStandaloneServer = () => {
                 const message = JSON.parse(data.toString());
                 console.log(`[Server] Received message type: ${message.type} from ${nodeId || 'new connection'}`);
                 if (message.type === 'register') {
-                    nodeId = message.payload.id;
-                    const nodeInfo = { ...message.payload, status: 'idle' };
+                    const payload = message.payload || {};
+                    if (!payload.id || typeof payload.id !== 'string') {
+                        ws.send(JSON.stringify({
+                            type: 'registration_result',
+                            payload: { success: false, error: 'Invalid registration payload: missing id' }
+                        }));
+                        return;
+                    }
+                    if (!payload.publicKey || typeof payload.publicKey !== 'string') {
+                        ws.send(JSON.stringify({
+                            type: 'registration_result',
+                            payload: { success: false, error: 'Invalid registration payload: missing publicKey' }
+                        }));
+                        return;
+                    }
+
+                    nodeId = payload.id;
+                    const nodeInfo = { ...payload, status: 'idle' };
                     nodes.set(nodeId!, { ws, info: nodeInfo });
                     firestoreService.updateNode(nodeId!, nodeInfo);
                     bqLog.nodeConnected(nodeId!, nodeInfo.trustScore || 50);

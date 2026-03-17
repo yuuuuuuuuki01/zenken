@@ -801,14 +801,28 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
         });
 
         ws.on('message', async (data) => {
+            const raw = data.toString();
+
             // 受信パケットのサイズチェック
-            if (data.toString().length > MAX_PAYLOAD_SIZE) {
-                console.error(`[Security] Payload bombardment detected! Size: ${data.toString().length}. Closing connection.`);
+            if (raw.length > MAX_PAYLOAD_SIZE) {
+                console.error(`[Security] Payload bombardment detected! Size: ${raw.length}. Closing connection.`);
                 ws.close(1009, 'Message too large');
                 return;
             }
 
-            const message = JSON.parse(data.toString());
+            let message: any;
+            try {
+                message = JSON.parse(raw);
+            } catch {
+                console.warn(`[${nodeInfo.id}] Ignoring non-JSON ws message.`);
+                return;
+            }
+
+            if (!message || typeof message !== 'object' || typeof message.type !== 'string') {
+                console.warn(`[${nodeInfo.id}] Ignoring malformed ws message without type.`);
+                return;
+            }
+
             console.log(`[${nodeInfo.id}] >>> Received message: type=${message.type}`);
 
             if (message.type === 'registration_result') {
@@ -828,6 +842,10 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
 
             if (message.type === 'auction_invite') {
                 const task = message.payload as TaskRequest;
+                if (!task?.taskId) {
+                    console.warn(`[${nodeInfo.id}] Ignoring auction_invite without taskId.`);
+                    return;
+                }
                 const bidPrice = biddingEngine.calculateBidPrice(nodeInfo.trustScore || 50, nodeInfo.performanceScore || 50);
                 (global as any).pendingAuctionTasks = (global as any).pendingAuctionTasks || new Map();
                 (global as any).pendingAuctionTasks.set(task.taskId, task);
@@ -838,7 +856,15 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
 
             if (message.type === 'task_request' || message.type === 'task_award') {
                 let task = message.payload as TaskRequest;
+                if (message.type === 'task_request' && !task?.taskId) {
+                    console.warn(`[${nodeInfo.id}] Ignoring task_request without taskId.`);
+                    return;
+                }
                 if (message.type === 'task_award') {
+                    if (!message.payload?.taskId) {
+                        console.warn(`[${nodeInfo.id}] Ignoring task_award without taskId.`);
+                        return;
+                    }
                     const pending = (global as any).pendingAuctionTasks?.get(message.payload.taskId);
                     if (!pending) {
                         console.error(`[${nodeInfo.id}] Received award for unknown task ${message.payload.taskId}`);
@@ -1055,6 +1081,8 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
                 } catch (err: any) {
                     console.error(`[${nodeInfo.id}] System state update failed: ${err.message}`);
                 }
+            } else {
+                console.warn(`[${nodeInfo.id}] Unhandled ws message type: ${message.type}`);
             }
         });
 
