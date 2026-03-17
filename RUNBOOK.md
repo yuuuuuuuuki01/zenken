@@ -31,6 +31,12 @@ npm -v
 - `certs/` が無ければ証明書を生成する
 
 ```bash
+npm run test:recovery-smoke
+```
+
+- スモークスクリプト自体の自己テスト（モックHTTPサーバーで検証）
+
+```bash
 node scripts/gen-certs.mjs
 ```
 

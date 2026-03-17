@@ -11,6 +11,7 @@
     "jimp": "^0.16.13"
   },
   "scripts": {
-    "recovery:smoke": "node scripts/recovery_smoke_check.mjs"
+    "recovery:smoke": "node scripts/recovery_smoke_check.mjs",
+    "test:recovery-smoke": "node --test scripts/tests/recovery_smoke_check.test.mjs"
   }
 }
