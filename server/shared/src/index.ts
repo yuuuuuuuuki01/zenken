@@ -3,6 +3,7 @@ export type TaskStep = 'submitted' | 'auction' | 'processing' | 'staged' | 'veri
 
 export interface NodeInfo {
     id: string;
+    name?: string;
     type: NodeType;
     location?: {
         lat: number;
@@ -79,5 +80,5 @@ export function canonicalStringify(obj: any): string {
         return '[' + obj.map(o => canonicalStringify(o)).join(',') + ']';
     }
     const sortedKeys = Object.keys(obj).sort();
-    return '{' + sortedKeys.map(k => `"${k}":${canonicalStringify(obj[k])}`).join(',') + '}';
+    return '{' + sortedKeys.map(k => `${JSON.stringify(k)}:${canonicalStringify(obj[k])}`).join(',') + '}';
 }

@@ -40,11 +40,13 @@ export function decrypt(encrypted: Buffer, key: Buffer, iv: Buffer, authTag: Buf
 }
 
 /**
- * Generates a key from a string (for PoC purposes).
- * In production, this would be a real random key exchanged via RSA/ECC.
+ * Generates a key from a string using PBKDF2 (for PoC purposes).
+ * In production, this would use a unique salt per user/node.
  */
 export function deriveKey(secret: string): Buffer {
-    return crypto.createHash('sha256').update(secret).digest();
+    // [L-9] Improved from simple SHA-256 to PBKDF2 for better brute-force resistance
+    const salt = Buffer.from('GigaComputeFixedSalt'); // In prod, use unique salt
+    return crypto.pbkdf2Sync(secret, salt, 100000, 32, 'sha256');
 }
 
 /**

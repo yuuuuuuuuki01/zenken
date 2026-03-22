@@ -12,6 +12,6 @@
   },
   "scripts": {
     "recovery:smoke": "node scripts/recovery_smoke_check.mjs",
-    "test:recovery-smoke": "node --test scripts/tests/recovery_smoke_check.test.mjs"
+    "test:recovery-smoke": "node --test --test-isolation=none scripts/tests/recovery_smoke_check.test.mjs"
   }
 }
