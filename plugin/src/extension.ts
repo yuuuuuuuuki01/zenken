@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import WebSocket from 'ws';
-import { NodeInfo, TaskRequest, TaskResponse } from '../../shared/src/index';
+import { NodeInfo, TaskRequest, TaskResponse } from './contracts';
 
 let ws: WebSocket;
 const serverUrl = 'ws://localhost:8080';
@@ -12,7 +12,8 @@ const nodeInfo: NodeInfo = {
     capabilities: [],
     location: { lat: 35.6762, lng: 139.6503 }, // Tokyo (Mock)
     performanceScore: 100,
-    rewardPoints: 0
+    rewardPoints: 0,
+    trustScore: 100
 };
 
 export function activate(context: vscode.ExtensionContext) {

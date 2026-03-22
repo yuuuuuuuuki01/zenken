@@ -28,5 +28,8 @@
         "@types/vscode": "^1.75.0",
         "@types/ws": "^8.18.1",
         "typescript": "^5.0.0"
+    },
+    "dependencies": {
+        "ws": "^8.20.0"
     }
 }
