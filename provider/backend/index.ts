@@ -10,6 +10,7 @@ console.log(`\n==========================================`);
 console.log(`  ZEN KEN Agent ${VERSION}`);
 console.log(`==========================================\n`);
 import { executeWasmTask } from './wasmRuntime';
+import { createTaskSandboxPolicy } from './sandboxPolicy';
 import { decrypt, deriveKey, signResult, generateNodeKeypair } from '../../shared/src/encryption';
 import { GigaWallet } from './wallet';
 import { LLMClient } from './llmClient';
@@ -922,6 +923,8 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
                         }
 
                         // [Delegated Reasoning] Wasm 実行中のコストイベントと推論リクエストを監視
+                        const sandboxPolicy = createTaskSandboxPolicy(task);
+                        console.log(`[Sandbox] Using profile "${sandboxPolicy.name}" for task ${task.taskId}`);
                         const wasmOutput = await executeWasmTask(wasmBuffer, task.payload.functionName, task.payload.args || [], task.secrets, (expenseMsg) => {
                             console.log(`[Economy] Charging API cost: ${expenseMsg.amount} via ${expenseMsg.provider}`);
                             wallet.addExpense(task.taskId, expenseMsg.amount, expenseMsg.provider);
@@ -938,7 +941,7 @@ open -a "Google Chrome" --args "--app=${targetUrl}" || open "${targetUrl}"
                                 wallet.addExpense(task.taskId, 0.5, 'Worker LLM Bridge');
                                 fullSyncGUI();
                             }
-                        });
+                        }, sandboxPolicy);
 
                         result = wasmOutput.result;
 

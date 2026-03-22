@@ -1,69 +1,134 @@
 import { Worker } from 'worker_threads';
 import path from 'path';
+import {
+    normalizeSandboxFilePath,
+    resolveSandboxPolicy,
+    sanitizeSecretsForSandbox,
+    WasmSandboxPolicy
+} from './sandboxPolicy';
 
 export interface StagedFile {
     path: string;
     content: string;
 }
 
-/**
- * GigaCompute Wasm Isolation Runtime with Hard Kill Watchdog
- * 強制隔離された Wasm 実行環境を Worker Thread で提供し、リソースを超過した場合は物理的に KILL します。
- */
 export async function executeWasmTask(
     wasmBuffer: Buffer,
     functionName: string,
     args: number[],
     secrets?: Record<string, string>,
     onExpense?: (msg: any) => void,
-    onLLMRequest?: (msg: any) => Promise<void>
+    onLLMRequest?: (msg: any) => Promise<void>,
+    policyOverrides?: Partial<WasmSandboxPolicy>
 ): Promise<{ result: number, files: StagedFile[] }> {
     return new Promise((resolve, reject) => {
         const isTs = __filename.endsWith('.ts');
         const workerPath = path.resolve(__dirname, isTs ? 'wasmWorker.ts' : 'wasmWorker.js');
         const stagedFiles: StagedFile[] = [];
+        const sandboxPolicy = resolveSandboxPolicy(policyOverrides);
+        const sandboxSecrets = sanitizeSecretsForSandbox(secrets, sandboxPolicy);
+        let totalFileBytes = 0;
 
-        // 1ms 単位の監視をシミュレートするタイマー (PoC 用に 5000ms を上限に設定)
-        const TIMEOUT_MS = 5000;
+        if (wasmBuffer.byteLength > sandboxPolicy.maxWasmBytes) {
+            reject(new Error(`Wasm payload exceeds sandbox limit (${sandboxPolicy.maxWasmBytes} bytes)`));
+            return;
+        }
 
-        console.log(`[Watchdog] Starting Wasm Worker for ${functionName}. Hard-Kill limit: ${TIMEOUT_MS}ms`);
+        if (args.length > sandboxPolicy.maxArgCount) {
+            reject(new Error(`Wasm arg count exceeds sandbox limit (${sandboxPolicy.maxArgCount})`));
+            return;
+        }
+
+        console.log(
+            `[Watchdog] Starting Wasm Worker for ${functionName}. ` +
+            `Hard-Kill limit: ${sandboxPolicy.maxExecutionMs}ms, profile=${sandboxPolicy.name}`
+        );
 
         const execArgv = isTs ? ['-r', 'ts-node/register'] : [];
         const worker = new Worker(workerPath, {
             workerData: {
-                wasmBuffer: wasmBuffer, // Buffer is cloned to worker
+                wasmBuffer,
                 functionName,
                 args,
-                secrets // API Pass-through: Pass secrets to isolated thread
+                secrets: sandboxSecrets,
+                sandboxPolicy
             },
-            execArgv
+            execArgv,
+            resourceLimits: {
+                maxOldGenerationSizeMb: sandboxPolicy.maxOldGenerationSizeMb,
+                maxYoungGenerationSizeMb: sandboxPolicy.maxYoungGenerationSizeMb,
+                stackSizeMb: sandboxPolicy.stackSizeMb
+            }
         });
 
+        const fail = (error: Error) => {
+            clearTimeout(timeout);
+            worker.terminate().catch(() => undefined);
+            reject(error);
+        };
+
         const timeout = setTimeout(() => {
-            console.error(`[Watchdog] !!!! HARD KILL !!!! Wasm task exceeded ${TIMEOUT_MS}ms. Terminating worker.`);
-            worker.terminate();
-            reject(new Error(`Execution Timeout: Resource limit exceeded (${TIMEOUT_MS}ms)`));
-        }, TIMEOUT_MS);
+            console.error(
+                `[Watchdog] !!!! HARD KILL !!!! Wasm task exceeded ${sandboxPolicy.maxExecutionMs}ms. Terminating worker.`
+            );
+            fail(new Error(`Execution Timeout: Resource limit exceeded (${sandboxPolicy.maxExecutionMs}ms)`));
+        }, sandboxPolicy.maxExecutionMs);
 
         worker.on('message', (msg) => {
             if (msg.type === 'result') {
                 clearTimeout(timeout);
                 resolve({ result: msg.result, files: stagedFiles });
-            } else if (msg.type === 'error') {
+                return;
+            }
+
+            if (msg.type === 'error') {
                 clearTimeout(timeout);
                 reject(new Error(msg.error));
-            } else if (msg.type === 'expense') {
-                // ホスト側イベントとして中継、またはコールバックを実行
+                return;
+            }
+
+            if (msg.type === 'expense') {
                 if (onExpense) onExpense(msg);
                 worker.emit('expense', msg);
-            } else if (msg.type === 'llm_request') {
-                // LLM 推論リクエストの中継
+                return;
+            }
+
+            if (msg.type === 'llm_request') {
+                if (!sandboxPolicy.allowLlmBridge) {
+                    fail(new Error('Sandbox policy blocked LLM bridge access'));
+                    return;
+                }
                 if (onLLMRequest) onLLMRequest(msg);
                 worker.emit('llm_request', msg);
-            } else if (msg.type === 'file_output') {
-                // [Phase 20] Wasm からのファイル成果物を収集
-                console.log(`[Runtime] Captured file output: ${msg.path}`);
-                stagedFiles.push({ path: msg.path, content: msg.content });
+                return;
+            }
+
+            if (msg.type === 'file_output') {
+                if (!sandboxPolicy.allowFileOutput) {
+                    fail(new Error('Sandbox policy blocked file output'));
+                    return;
+                }
+                if (stagedFiles.length >= sandboxPolicy.maxFileOutputs) {
+                    fail(new Error(`Sandbox file output limit exceeded (${sandboxPolicy.maxFileOutputs})`));
+                    return;
+                }
+
+                const normalizedPath = normalizeSandboxFilePath(String(msg.path || ''));
+                const content = String(msg.content || '');
+                const fileBytes = Buffer.byteLength(content, 'utf8');
+                if (fileBytes > sandboxPolicy.maxFileBytes) {
+                    fail(new Error(`Sandbox file size limit exceeded for ${normalizedPath}`));
+                    return;
+                }
+
+                totalFileBytes += fileBytes;
+                if (totalFileBytes > sandboxPolicy.maxTotalFileBytes) {
+                    fail(new Error(`Sandbox total file output limit exceeded (${sandboxPolicy.maxTotalFileBytes})`));
+                    return;
+                }
+
+                console.log(`[Runtime] Captured file output: ${normalizedPath}`);
+                stagedFiles.push({ path: normalizedPath, content });
             }
         });
 
@@ -80,4 +145,3 @@ export async function executeWasmTask(
         });
     });
 }
-
